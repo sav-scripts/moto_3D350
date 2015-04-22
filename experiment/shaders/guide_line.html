@@ -1,10 +1,15 @@
 <script type="x-shader/x-vertex" id="vertex">
 
+    attribute float lineType;
+
     varying vec2 vUv;
+    varying float vLineType;
+
 
     void main()
     {
         vUv = uv;
+        vLineType = lineType;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
 
@@ -12,22 +17,49 @@
 
 <script type="x-shader/x-fragment" id="fragment">
 
-    uniform sampler2D texture;
+    //uniform sampler2D texture;
 
-    varying vec4 vColor;
+    //varying vec4 vColor;
     varying vec2 vUv;
+
+    varying float vLineType;
+
+    float quadOut(float t, float b, float c, float d)
+    {
+        t /= d;
+        return -c * t*(t-2.0) + b;
+    }
+
+    float quardInOut(float t, float b, float c, float d)
+    {
+        t /= d/2.0;
+        if (t < 1.0) return c/2.0*t*t*t*t + b;
+        t -= 2.0;
+        return -c/2.0 * (t*t*t*t - 2.0) + b;
+    }
+
 
     #define M_PI 3.1415926535897932384626433832795
 
     void main() {
 
-        vec4 color = vec4(1.0, 1.0, 1.0, 1.0);
 
-        float alpha = sin(vUv.x*M_PI);
 
-        //if(vUv.x > .5) alpha = .0;
+        //float alpha = (1.0 - abs(quardInOut(vUv.x, -1.0, 2.0, 1.0))) * .09;
+        float alpha = 1.0;
 
-        gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);
+        if(vLineType == .0)
+        {
+            alpha = (1.0 - abs(quardInOut(vUv.x, -1.0, 2.0, 1.0))) * .09;
+        }
+        else
+        {
+            alpha = (1.0 - abs(quardInOut(vUv.y, -1.0, 2.0, 1.0))) * .09;
+        }
+
+        vec3 color = vec3(1.0, .8, .0);
+
+        gl_FragColor = vec4(color, alpha);
 
     }
 

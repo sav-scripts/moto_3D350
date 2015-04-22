@@ -19,7 +19,7 @@
 
         var attributes = _p.attributes =
         {
-            lineDirection:{type:"f", value:[]} // 0: top->down, 1: left->right
+            lineType:{type:"f", value:[]} // 0: top->down, 1: left->right
         };
 
         //var material = new THREE.MeshBasicMaterial({wireframe:true});
@@ -29,7 +29,7 @@
             attributes: attributes,
             vertexShader: ShaderLoader.getShader("guide_line", "#vertex"),
             fragmentShader: ShaderLoader.getShader("guide_line", "#fragment"),
-            //blending: THREE.AdditiveBlending,
+            blending: THREE.AdditiveBlending,
             transparent:true,
             depthTest: false
 
@@ -38,20 +38,35 @@
 
         var geometry = _p.geometry = new THREE.Geometry();
 
-        var x, y, startX = -_mapData.width*.5, startY = -_mapData.height*.5;
         var LINE_GAP = 20, THICKNESS = 1, HALF_THICKNESS = THICKNESS*.5;
+
+        var width = Math.ceil(_mapData.width/LINE_GAP) * LINE_GAP;
+        var height = Math.ceil(_mapData.height/LINE_GAP) * LINE_GAP;
+
+        var x, y, startX = -width*.5, startY = -height*.5;
         var fIndex, quadIndex = 0;
 
-        for(x=0;x<_mapData.width;x+=LINE_GAP)
+        for(x=LINE_GAP;x<width;x+=LINE_GAP)
+        {
+            addQuad(0, startX+x-HALF_THICKNESS, startY + height, startX+x+HALF_THICKNESS, startY);
+        }
+
+
+        for(y=LINE_GAP;y<height;y+=LINE_GAP)
+        {
+            addQuad(1, startX, startY+y+HALF_THICKNESS, startX + width, startY+y-HALF_THICKNESS);
+        }
+
+        function addQuad(lineType, left, top, right, bottom)
         {
             fIndex = quadIndex*4;
 
             geometry.vertices.push
             (
-                new THREE.Vector3(startX+x-HALF_THICKNESS, startY, 0),
-                new THREE.Vector3(startX+x+HALF_THICKNESS, startY, 0),
-                new THREE.Vector3(startX+x-HALF_THICKNESS, startY+_mapData.height, 0),
-                new THREE.Vector3(startX+x+HALF_THICKNESS, startY+_mapData.height, 0)
+                new THREE.Vector3(left, bottom, 0),
+                new THREE.Vector3(right, bottom, 0),
+                new THREE.Vector3(left, top, 0),
+                new THREE.Vector3(right, top, 0)
             );
 
             geometry.faces.push(
@@ -72,15 +87,9 @@
                 ]
             );
 
-            attributes.lineDirection.value.push([0,0,0,0]);
+            attributes.lineType.value.push(lineType, lineType, lineType, lineType);
 
             quadIndex++;
-        }
-
-
-        for(y=0;y<_mapData.height;y+=LINE_GAP)
-        {
-
 
         }
 

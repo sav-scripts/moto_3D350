@@ -28,7 +28,7 @@
                 time: {type:"f", value:0},
                 mapWidth: {type:"f", value:_mapData.width},
                 mapHeight: {type:"f", value:_mapData.height},
-                dotMode: {type:"f", value: 0},
+                dotMode: {type:"i", value: 0},
                 dotColor: {type:"v3", value: new THREE.Vector3(1,.8,.0)},
                 QUAD_SIZE: {type:"f", value: QUAD_SIZE},
                 HALF_QUAD_SIZE: {type:"f", value: HALF_QUAD_SIZE},

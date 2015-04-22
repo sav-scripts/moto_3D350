@@ -86,7 +86,7 @@
 
 <script type="x-shader/x-fragment" id="fragment">
 
-    uniform float dotMode;
+    uniform int dotMode;
 
     uniform vec3 dotColor;
     uniform sampler2D texture;
@@ -106,7 +106,7 @@
         vec2 uv = vec2(vUv.x, vUv.y);
 
 
-        if(dotMode > .0 && extraHeight > .0)
+        if(dotMode > 0 && extraHeight > .0)
         {
             float totalHeight = extraHeight + TOP_PART + BOTTOM_PART;
 
@@ -115,7 +115,7 @@
 
             //uv.y = smoothstep(.0, .49, topHeight) * topHeight;
 
-            if(dotMode == 1.0)
+            if(dotMode == 1)
             {
                 if(uv.y <= topHeight)
                 {
@@ -130,7 +130,7 @@
                     uv.y = .5;
                 }
             }
-            else if(dotMode == 2.0)
+            else if(dotMode == 2)
             {
                 if(uv.y >= (1.0 - bottomHeight))
                 {
