@@ -139,6 +139,11 @@
         folder.add(_camera.position, "z").listen();
         //folder.open();
 
+        window.debug = "";
+
+        _datGUI.add(window, "debug").listen();
+
+
 
 
         //_camera.lookAt(_lookingCenter);
@@ -188,6 +193,11 @@
                 }
             }
             */
+
+            if(_guideLine)
+            {
+                _guideLine.uniforms.time.value += .002;
+            }
 
 
             if(_quadCloudMap)

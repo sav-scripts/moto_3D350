@@ -146,6 +146,20 @@
                 handleEvent("mouseWheel", delta/Math.abs(delta));
             });
 
+
+            var hammer = new Hammer(document, {  });
+            hammer.on("pinchin", function(event)
+            {
+                handleEvent("mouseWheel", -.5);
+            }).on("pinchout", function()
+            {
+                handleEvent("mouseWheel",.5);
+
+            });
+
+
+
+
             $(window).on("keydown", function(event)
             {
                 //console.log("key down: " + event.keyCode);

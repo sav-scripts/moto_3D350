@@ -15,11 +15,14 @@
 
         var uniforms = _p.uniforms =
         {
+            time:{ type:"f", value:0}
         };
 
         var attributes = _p.attributes =
         {
-            lineType:{type:"f", value:[]} // 0: top->down, 1: left->right
+            lineType:{type:"f", value:[]}, // 0: top->down, 1: left->right
+            randomSeed: {type:"f", value:[]},
+            speed: {type:"f", value:[]}
         };
 
         //var material = new THREE.MeshBasicMaterial({wireframe:true});
@@ -50,7 +53,6 @@
         {
             addQuad(0, startX+x-HALF_THICKNESS, startY + height, startX+x+HALF_THICKNESS, startY);
         }
-
 
         for(y=LINE_GAP;y<height;y+=LINE_GAP)
         {
@@ -87,7 +89,12 @@
                 ]
             );
 
+            var randomSeed = Math.random();
+            var speed = Math.random() + .5;
+
             attributes.lineType.value.push(lineType, lineType, lineType, lineType);
+            attributes.randomSeed.value.push(randomSeed, randomSeed, randomSeed, randomSeed);
+            attributes.speed.value.push(speed, speed, speed, speed);
 
             quadIndex++;
 
