@@ -1,0 +1,125 @@
+<script id="vertex" type="x-shader/x-vertex">
+
+    varying vec2 vUV;
+    attribute vec2 uv3;
+    uniform vec2 screenMouse;
+    uniform vec3 projectedMouse;
+
+    void main()
+    {
+        vUV = uv;
+
+        vec4 outPosition = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        // outPosition.z = 0.0;
+        //outPosition.x *= 2.0;
+        //if(outPosition.x == 1.0) outPosition.x = 0.0;
+
+        //outPosition.x += 500.0;
+        gl_Position = outPosition;
+    }
+
+
+</script>
+
+<script id="fragment" type="x-shader/x-fragment">
+
+    uniform sampler2D texture;
+    uniform vec2 screenMouse;
+
+    varying vec2 vUV;
+
+    #define PI 3.14159265358979
+    #define HALF_PI (PI/2.)
+
+    void main()
+    {
+
+        float depth = gl_FragCoord.z / gl_FragCoord.w;
+        float alpha = smoothstep(2500.0, 0.0, depth);
+
+        float alpha2 = sin((alpha*2.0 - 1.0) * 2.0*PI);
+
+
+        vec2 uv = vec2(vUV.x, vUV.y);
+
+
+        vec2 uvTop = vec2(vUV.x, vUV.y-.003);
+        vec2 uvBottom = vec2(vUV.x, vUV.y+.003);
+        vec2 uvLeft = vec2(vUV.x-.003, vUV.y);
+        vec2 uvRight = vec2(vUV.x+.003, vUV.y);
+
+        vec4 outColor;
+
+
+        // vec3 glPos = gl_FragCoord.xyz / gl_FragCoord.w;
+        // vec4 mouseCoord = vec4(screenMouse.x, screenMouse.y, gl_FragCoord.z, gl_FragCoord.w);
+        // vec3 mousePos = mouseCoord.xyz / mouseCoord.w;
+
+
+        //vec3 glPos = gl_FragCoord
+
+        /*
+
+        float dist = distance(screenMouse, vec2(gl_FragCoord.x, gl_FragCoord.y));
+
+        if(dist <= 100.0)
+        {
+            discard;
+            //outColor = texture2D(texture, vec2(uv.x, uv.y+.01));
+        }
+        else
+        {
+            outColor = texture2D(texture, uv);
+        }
+        */
+
+
+
+
+
+            outColor = texture2D(texture, uv);
+        //gl_FragColor = outColor;
+
+        gl_FragColor = vec4(0.0, 0.0, 0.0, outColor.r);
+
+
+/*
+        if(outColor.r > .9)
+        {
+            //outColor = vec4(.8, .8, .8, 1.0);
+            discard;
+
+        }
+        else
+        {
+            //outColor = vec4(.5, .5, .5, 1.0);
+        }
+
+    */
+
+        //outColor.a = alpha;
+
+
+
+/*
+        float depth = gl_FragCoord.z / gl_FragCoord.w;
+        float alpha;
+        float middle = 500.0;
+
+         if(depth >= middle)
+         {
+            alpha = smoothstep(2500.0, middle, depth);
+         }
+         else
+         {
+            alpha = smoothstep(middle - 20.0, middle, depth);
+         }
+
+         outColor.a = alpha;
+         */
+
+
+        //gl_FragColor = vec4(1.0, .0, .0, 1.0);
+    }
+
+</script>

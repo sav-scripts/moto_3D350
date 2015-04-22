@@ -1,0 +1,34 @@
+<script type="x-shader/x-vertex" id="vertex">
+
+    varying vec2 vUv;
+
+    void main()
+    {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+
+</script>
+
+<script type="x-shader/x-fragment" id="fragment">
+
+    uniform sampler2D texture;
+
+    varying vec4 vColor;
+    varying vec2 vUv;
+
+    #define M_PI 3.1415926535897932384626433832795
+
+    void main() {
+
+        vec4 color = vec4(1.0, 1.0, 1.0, 1.0);
+
+        float alpha = sin(vUv.x*M_PI);
+
+        //if(vUv.x > .5) alpha = .0;
+
+        gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);
+
+    }
+
+</script>
