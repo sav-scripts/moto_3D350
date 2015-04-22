@@ -154,7 +154,6 @@
             }).on("pinchout", function()
             {
                 handleEvent("mouseWheel",.5);
-
             });
 
 

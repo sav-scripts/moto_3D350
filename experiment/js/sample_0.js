@@ -43,6 +43,10 @@
 
     var _datGUI;
 
+    var _mouseTrail = [];
+
+    var _trailLength = 100;
+
     /** init **/
     Main.init = function()
     {
@@ -102,6 +106,7 @@
 
         _quadCloudMap = new QuadCloudMap(_mapData, _scene);
         _quadCloudMap.setupGUI(_datGUI.addFolder("Quad Cloud Map"));
+        _quadCloudMap.uniforms.trailLength.value = _trailLength;
         _scene.add(_quadCloudMap.object3D);
 
         _raycaster = new THREE.Raycaster();
@@ -167,33 +172,6 @@
         {
             requestAnimationFrame(render);
 
-            //_projectedMouse = screenProjectToScene(_screenMouse.x, _screenMouse.y);
-
-            //_camera.up = new THREE.Vector3(0,0,1);
-            //_camera.lookAt(_lookingCenter);
-
-
-/*
-
-            if(_testPlane)
-            {
-                _raycaster.setFromCamera(_ndcMouse, _camera);
-
-                var intersection = _raycaster.intersectObject(_testPlane);
-                intersection = (intersection.length > 0)? intersection[0]: null;
-
-                if(intersection)
-                {
-                    var point = intersection.point;
-
-                    var mat4 = _testPlane.matrixWorld.clone();
-                    mat4 = mat4.getInverse(mat4);
-
-                    _projectedMouse = point.applyMatrix4(mat4);
-                }
-            }
-            */
-
             if(_guideLine)
             {
                 _guideLine.uniforms.time.value += .002;
@@ -204,9 +182,13 @@
             {
                 _quadCloudMap.uniforms.time.value += .02;
 
-                _quadCloudMap.uniforms.rotation.value.x = _scene.rotation.x;
-                _quadCloudMap.uniforms.rotation.value.y = _scene.rotation.y;
-                _quadCloudMap.uniforms.rotation.value.z = _scene.rotation.z;
+                //_quadCloudMap.uniforms.rotation.value.x = _scene.rotation.x;
+                //_quadCloudMap.uniforms.rotation.value.y = _scene.rotation.y;
+                //_quadCloudMap.uniforms.rotation.value.z = _scene.rotation.z;
+
+                _quadCloudMap.uniforms.rotation.value.x = -_camera.rotation.x;
+                _quadCloudMap.uniforms.rotation.value.y = -_camera.rotation.y;
+                _quadCloudMap.uniforms.rotation.value.z = -_camera.rotation.z;
 
                 _quadCloudMap.uniforms.projectedMouse.value = _projectedMouse;
 
@@ -215,7 +197,6 @@
                 matrix.setPosition(new THREE.Vector3(0, 0, 0));
                 _quadCloudMap.uniforms.rotationMatrixInverse.value = matrix;
                 */
-
 
                 var matrix = _camera.matrixWorld.clone();
                 matrix.setPosition(new THREE.Vector3(0, 0, 0));
@@ -279,6 +260,52 @@
     {
         if(event.target != _renderer.domElement) return;
         updateMousePosition(event.clientX, event.clientY);
+
+        testMouseTrail();
+
+        function testMouseTrail()
+        {
+
+            var point = mouseHitTest();
+
+            if(point)
+            {
+                var dic = _quadCloudMap.quadDic;
+                var cx = parseInt(point.x);
+                var cy = parseInt(point.y);
+
+                var index = dic[cx + "_" + cy];
+                if(index !== undefined && !(_mouseTrail[0] != undefined && _mouseTrail[0] == index))
+                {
+                    _mouseTrail.unshift(index);
+                    if(_mouseTrail.length > _trailLength)
+                    {
+                        var outIndex = _mouseTrail.pop();
+                        updateQuad(outIndex, 0);
+                    }
+
+                    for(var i=0;i<_mouseTrail.length;i++)
+                    {
+                        updateQuad(_mouseTrail[i], i+1);
+                    }
+
+                    _quadCloudMap.attributes.trailValue.needsUpdate = true;
+
+                    //console.log("mouse trail = " + _mouseTrail);
+                }
+            }
+
+        }
+
+        function updateQuad(quadIndex, v)
+        {
+            var vIndex = quadIndex*4;
+            var value = _quadCloudMap.attributes.trailValue.value;
+
+
+            value[vIndex] = value[vIndex+1] = value[vIndex+2] = value[vIndex+3] = v;
+
+        }
     }
 
     function onMousedown(event)
@@ -287,28 +314,24 @@
         //_screenMouse = new THREE.Vector2(event.clientX, event.clientY);
         updateMousePosition(event.clientX, event.clientY);
 
-        //return;
+        testMove();
 
-        _raycaster.setFromCamera(_ndcMouse, _camera);
-
-        var intersection = _raycaster.intersectObject(_testPlane);
-        intersection = (intersection.length > 0)? intersection[0]: null;
-
-        if(intersection)
+        function testMove()
         {
-            var point = intersection.point;
+            var point = mouseHitTest();
 
+            if(point)
+            {
+                var mat4 = _testPlane.matrixWorld.clone();
+                mat4 = mat4.getInverse(mat4);
 
+                _projectedMouse = point.applyMatrix4(mat4);
 
-            var mat4 = _testPlane.matrixWorld.clone();
-            mat4 = mat4.getInverse(mat4);
+                //_lookingCenter = point;
+                TweenMax.to(_lookingCenter, 1, {x:point.x, y:point.y, z:point.z, ease:Power1.easeInOut});
+                _quadCloudMap.uniforms.time.value = 0;
+            }
 
-            _projectedMouse = point.applyMatrix4(mat4);
-
-            //_lookingCenter = point;
-            TweenMax.to(_lookingCenter, 1, {x:point.x, y:point.y, z:point.z, ease:Power1.easeInOut});
-
-            _quadCloudMap.uniforms.time.value = 0;
         }
 
         //screenProjectToScene(event.clientX, event.clientY);
@@ -319,31 +342,16 @@
     {
         var dx = _lookingCenter.x - _camera.position.x;
         var dy = _lookingCenter.y - _camera.position.y;
-        //var dx = _camera.position.x;
-        //var dy = - _camera.position.y;
-
-
-
-        //console.log("point = " + JSON.stringify(point));
-        //console.log("dx = " + dx + ", dy = " + dy);
 
         var arcX = Math.atan2(dy, _camera.position.z);
         var arc2 = Math.atan2(-dx, dy);
-
-        //console.log("arcX = " + arcX);
-        //console.log("arc2 = " + arc2);
 
 
         _camera.rotation.set(0,0,0);
         _camera.rotateOnAxis(new THREE.Vector3(1,0,0), arcX);
 
         var axis = new THREE.Vector3(0, dy, _camera.position.z).normalize();
-
-        //console.log("axis = " + JSON.stringify(axis));
-
-        //_camera.rotateOnAxis(axis, Math.PI *.05);
         _camera.rotateOnAxis(axis, arc2);
-
     }
 
     function updateMousePosition(tx, ty)
@@ -356,16 +364,19 @@
         //TweenMax.killTweensOf(_screenMouse);
         //TweenMax.to(_screenMouse,.25, {x:tx, y:ty, ease:Power1.easeOut, onUpdate:onUpdate});
 
-
         function onUpdate()
         {
-            //_ndcMouse.x = event.clientX/window.innerWidth*2 - 1;
-            //_ndcMouse.y = -event.clientY/window.innerHeight*2 + 1;
-
             _ndcMouse.x = _screenMouse.x/window.innerWidth*2 - 1;
             _ndcMouse.y = -_screenMouse.y/window.innerHeight*2 + 1;
         }
+    }
 
+    function mouseHitTest()
+    {
+        _raycaster.setFromCamera(_ndcMouse, _camera);
+        var intersection = _raycaster.intersectObject(_testPlane);
+
+        return (intersection.length > 0)? intersection[0].point: null;
 
     }
 

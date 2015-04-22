@@ -12,6 +12,8 @@
         _p.uniforms = null;
         _p.attributes = null;
 
+        _p.quadDic = {};
+
         var DOT_GAP = 1;
         var QUAD_SIZE = 1;
         var HALF_QUAD_SIZE = QUAD_SIZE * .5;
@@ -28,8 +30,10 @@
                 time: {type:"f", value:0},
                 mapWidth: {type:"f", value:_mapData.width},
                 mapHeight: {type:"f", value:_mapData.height},
-                dotMode: {type:"i", value: 0},
+                dotMode: {type:"i", value: 2},
                 dotColor: {type:"v3", value: new THREE.Vector3(1,.8,.0)},
+                trailColor: {type:"v3", value: new THREE.Vector3(1,.5,.5)},
+                trailLength: {type:"f", value: 100},
                 QUAD_SIZE: {type:"f", value: QUAD_SIZE},
                 HALF_QUAD_SIZE: {type:"f", value: HALF_QUAD_SIZE},
                 texture:   { type: "t", value: texture },
@@ -40,7 +44,9 @@
 
             var attributes = _p.attributes =
             {
-                vectorIndex: {type:"f", value:[]}
+                vectorIndex: {type:"f", value:[]},
+                quadIndex: {type:"i", value:[]},
+                trailValue: {type:"f", value:[]}
                 //uv3:{type:"v2", value:[[0,0], [1,0], [0,1], [1,1]]}
             };
 
@@ -113,11 +119,16 @@
                             //var vertex = new THREE.Vector3();
                             var cx = left + w*gap;
                             var cy = top - h*gap;
+
                             //vertex.z = 0;
 
                             var fIndex = quadIndex*4;
 
+                            _p.quadDic[cx + "_" + cy] = quadIndex;
+
                             _p.attributes.vectorIndex.value.push(0, 1, 2, 3);
+                            _p.attributes.quadIndex.value.push(quadIndex, quadIndex, quadIndex, quadIndex);
+                            _p.attributes.trailValue.value.push(0, 0, 0, 0);
 
                             geometry.vertices.push(
                                 new THREE.Vector3(cx-HALF_QUAD_SIZE, cy+HALF_QUAD_SIZE, 0),
@@ -172,6 +183,7 @@
             {
                 "dot scale mode":_p.uniforms.dotMode.value,
                 "dot color": "#ffcc00",
+                "trail color": "#ff8888",
                 "wireframe": false
             };
 
@@ -200,16 +212,29 @@
                 }
             });
 
-            gui.addColor(obj, "dot color").onChange(function(v)
+            gui.addColor(obj, "dot color").onChange(function(c)
             {
-                var c = obj["dot color"];
-                c = parseInt("0x" + c.substr(1));
-                var r = ((c >> 16) & 255)/255,
-                    g = ((c >> 8) & 255)/255,
-                    b = (c & 255)/255;
-
-                _p.uniforms.dotColor.value = new THREE.Vector3(r, g, b);
+                _p.uniforms.dotColor.value = getRGB(c);
             });
+
+            gui.addColor(obj, "trail color").onChange(function(c)
+            {
+
+                _p.uniforms.trailColor.value = getRGB(c);
+            });
+
+            function getRGB(c)
+            {
+                c = parseInt("0x" + c.substr(1));
+
+                return new THREE.Vector3
+                (
+                    ((c >> 16) & 255)/255,
+                    ((c >> 8) & 255)/255,
+                    (c & 255)/255
+                );
+
+            }
         }
     };
 
