@@ -1,0 +1,192 @@
+<script type="x-shader/x-vertex" id="vertex">
+
+    #define M_PI 3.1415926535897932384626433832795
+
+    uniform float time;
+
+    uniform float QUAD_SIZE;
+    uniform float HALF_QUAD_SIZE;
+
+    uniform vec3 projectedMouse;
+    uniform float trailLength;
+
+    uniform vec4 rotation;
+
+    uniform mat4 rotationMatrixInverse;
+
+    attribute vec3 center;
+    attribute float trailValue;
+
+    attribute float vectorIndex;
+
+    varying vec2 vUv;
+    varying float extraHeight;
+    varying float extraSize;
+
+    varying float vTrailValue;
+
+
+    mat4 rotationMatrix(vec3 axis, float angle)
+    {
+        axis = normalize(axis);
+        float s = sin(angle);
+        float c = cos(angle);
+        float oc = 1.0 - c;
+
+
+        return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                    oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                    oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                    0.0,                                0.0,                                0.0,                                1.0);
+    }
+
+
+    void main()
+    {
+        vUv = uv;
+        vTrailValue = trailValue;
+
+        float mySize = QUAD_SIZE;
+        float myHalfSize = QUAD_SIZE * .5;
+
+        vec3 vp = position;
+
+        float dHeight = 5.0 * sin(time) + 5.0;
+
+        float dist = distance(center.xyz, projectedMouse.xyz);
+        extraHeight = smoothstep(7.0, 0.0, dist) * dHeight;
+
+        if(trailValue > .0)
+        {
+            extraHeight += 4.0 * abs(sin(time*2.0 + (trailValue/trailLength)*2.0*M_PI));
+        }
+
+        float dh = (extraHeight+1.0) * mySize;
+
+        if(vectorIndex == .0 || vectorIndex == 1.0)
+        {
+            vp.y = center.y + dh -.5;
+        }
+        else
+        {
+            vp.y = center.y -.5;
+        }
+
+        vp -= center;
+
+
+        if(trailValue > .0)
+        {
+            vp.x *= 2.0;
+            vp.y *= 2.0;
+        }
+
+
+        /*
+            mat4 mat_r_x = rotationMatrix(vec3(1.0, .0, .0), -rotation.x);
+            mat4 mat_r_y = rotationMatrix(vec3(.0, 1.0, .0), -rotation.y);
+            mat4 mat_r_z = rotationMatrix(vec3(.0, .0, 1.0), -rotation.z);
+            vp = (vec4(vp, 1.0) * mat_r_x * mat_r_y * mat_r_z).xyz;
+        */
+
+
+        vp = (vec4(vp, 1.0) * rotationMatrixInverse).xyz;
+
+        vp += center;
+
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(vp, 1.0);
+
+
+        // gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+        // gl_Position = projectionMatrix * (vec4(position, 1.0) + vec4(modelViewMatrix[3].xyz, 0.0));
+    }
+
+</script>
+
+<script type="x-shader/x-fragment" id="fragment">
+
+    uniform int dotMode;
+
+    uniform vec3 dotColor;
+    uniform vec3 trailColor;
+    uniform sampler2D texture;
+
+    varying vec2 vUv;
+    varying float extraHeight;
+    varying float extraSize;
+
+    varying float vTrailValue;
+
+
+    #define MIDDLE_PART .0
+    #define TOP_PART .5
+    #define BOTTOM_PART .5
+
+    void main()
+    {
+
+
+        vec2 uv = vec2(vUv.x, vUv.y);
+
+
+        if(dotMode > 0 && extraHeight > .0)
+        {
+            float totalHeight = extraHeight + TOP_PART + BOTTOM_PART;
+
+            float topHeight = TOP_PART / totalHeight;
+            float bottomHeight = BOTTOM_PART / totalHeight;
+
+            //uv.y = smoothstep(.0, .49, topHeight) * topHeight;
+
+            if(dotMode == 1)
+            {
+                if(uv.y <= topHeight)
+                {
+                    uv.y = smoothstep(.0, topHeight, uv.y) * TOP_PART;
+                }
+                else if(uv.y >= (1.0 - bottomHeight))
+                {
+                    uv.y = smoothstep(1.0 - bottomHeight, 1.0, uv.y) * BOTTOM_PART + (1.0 - BOTTOM_PART);
+                }
+                else
+                {
+                    uv.y = .5;
+                }
+            }
+            else if(dotMode == 2)
+            {
+                if(uv.y >= (1.0 - bottomHeight))
+                {
+                    uv.y = smoothstep(1.0 - bottomHeight, 1.0, uv.y) * BOTTOM_PART + (1.0 - BOTTOM_PART);
+                }
+                else
+                {
+                    uv.y = smoothstep(.0, 1.0 - bottomHeight, uv.y) * (1.0 - BOTTOM_PART);
+                }
+            }
+        }
+
+
+        vec4 outColor = texture2D( texture, uv );
+
+        vec3 c = vTrailValue > .0? trailColor: dotColor;
+
+        gl_FragColor = outColor * vec4(c, 1.0);
+
+/*
+
+        float depth = gl_FragCoord.z / gl_FragCoord.w;
+        const vec3 fogColor = vec3( 0.0 , .0, .0 );
+
+        float fogFactor = smoothstep( 400.0, 2200.0, depth );
+
+        //float fogFactor = 1.0;
+        gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
+
+        */
+
+    }
+
+</script>

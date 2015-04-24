@@ -1,0 +1,143 @@
+<script type="x-shader/x-vertex" id="vertex">
+
+    uniform float time;
+    uniform float floatScale;
+    uniform vec3 projectedMouse;
+    uniform float innerAlpha;
+    uniform float dotScale;
+
+    attribute float randomSeed;
+    attribute float size;
+    attribute float alpha;
+    attribute float isEdge;
+
+    varying float vAlpha;
+    varying float vIsEdge;
+
+    float quadOut(float t, float b, float c, float d)
+    {
+        t /= d;
+        return -c * t*(t-2.0) + b;
+    }
+
+    float quadIn(float t, float b, float c, float d)
+    {
+        t /= d;
+        return c*t*t + b;
+    }
+
+    mat4 rotationMatrix(vec3 axis, float angle)
+    {
+        axis = normalize(axis);
+        float s = sin(angle);
+        float c = cos(angle);
+        float oc = 1.0 - c;
+
+
+        return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                    oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                    oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                    0.0,                                0.0,                                0.0,                                1.0);
+    }
+
+    void main()
+    {
+        vAlpha = alpha;
+        vIsEdge = isEdge;
+
+        vec3 vp = position;
+
+        float threshold = 20.0;
+
+        float dist = distance(vp, projectedMouse);
+        float pushRange = smoothstep(threshold, .0, dist);
+
+        if(dist <= threshold)
+        {
+            //pushRange = pushRange*5.0 + 10.0;
+            vec3 d = vp - projectedMouse;
+            //d = normalize(d);
+            //d = d * pushRange;
+
+            float arc = time*.5 * pushRange;
+            mat4 matrix = rotationMatrix(vec3(.0, .0, 1.0), arc);
+
+            d = (vec4(d, 1.0)*matrix).xyz;
+
+            vp.x = projectedMouse.x + d.x;
+            vp.y = projectedMouse.y + d.y;
+            //vp.z = quadIn(pushRange, .0, -10.0, 1.0);
+        }
+
+        float flip = mod(randomSeed, .1) > .05? 1.0: -1.0;
+
+        float r = (sin(time*randomSeed) + 1.0) * floatScale;
+
+        float arc2 = time*randomSeed * flip;
+        vp.x += r * cos(arc2);
+        vp.y += r * sin(arc2);
+
+        //vp.x += sin(time*randomSeed*.5 + .5) * floatScale;
+        //vp.y += -sin(time*randomSeed*.5 + .5) * floatScale;
+
+
+        //vp.z += sin(time*randomSeed*.5 + .5)* cos(time*randomSeed*.5 + .5) * floatScale;
+        /*
+        vp.x += sin(time+randomSeed*10.0+vp.y) * floatScale;
+        vp.y += cos(time+randomSeed*5.0+vp.x) * floatScale;
+        vp.z += sin(time+randomSeed*10.0+vp.x+vp.y) * floatScale;
+        */
+        //vp.z += sin(time+vp.x - vp.y);
+
+
+        vec4 mvPosition = modelViewMatrix * vec4( vp, 1.0 );
+
+
+
+
+        gl_PointSize = 1000.0 * size * ( 1.0 / length( mvPosition.xyz ) ) * dotScale;
+
+        gl_Position = projectionMatrix * mvPosition;
+
+    }
+
+
+</script>
+
+<script type="x-shader/x-fragment" id="fragment">
+
+    uniform vec3 dotColor;
+    uniform sampler2D texture;
+    uniform float innerAlpha;
+
+    varying float vAlpha;
+    varying float vIsEdge;
+
+    void main()
+    {
+
+        float alpha = vAlpha;
+
+        //if(edgeMode == 1 && vIsEdge <= .5) discard;
+        if(vIsEdge <= .5) alpha *= innerAlpha;
+
+
+        vec4 outColor = texture2D( texture, gl_PointCoord );
+
+
+        gl_FragColor = outColor * vec4( dotColor, alpha );
+
+
+        /*
+        float depth = gl_FragCoord.z / gl_FragCoord.w;
+        const vec3 fogColor = vec3( 0.0 , .0, .0 );
+
+        float fogFactor = smoothstep( 400.0, 2200.0, depth );
+
+        //float fogFactor = 1.0;
+        gl_FragColor = mix( gl_FragColor, vec4( fogColor, gl_FragColor.w ), fogFactor );
+        */
+
+    }
+
+</script>
