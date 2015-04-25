@@ -30,7 +30,7 @@
     var _windowHalfW, _windowHalfH, WIDTH, HEIGHT;
 
     var _screenMouse = {x:0, y:0};
-    var _projectedMouse = new THREE.Vector3(0,0,0);
+    var _projectedMouse = null;
     var _ndcMouse = new THREE.Vector2();
 
     var _raycaster;
@@ -39,7 +39,7 @@
     var _mapPath = "images/big_blank.png";
 
     var _testPlane;
-    var _baseMap, _pointMap, _guideLine;
+    var _baseMap, _pointMap, _guideLine, _nodeMap;
 
     var _datGUI;
 
@@ -52,7 +52,7 @@
 
         getWorldMapData(function()
         {
-            ShaderLoader.load(["map_0", "point_cloud_map", "quad_cloud_map", "guide_line"], build);
+            ShaderLoader.load(["map_0", "point_cloud_map", "quad_cloud_map", "guide_line", "link_line"], build);
         });
 
     };
@@ -109,6 +109,8 @@
         _pointMap = new PointCloudMap(_mapData, _scene);
         _pointMap.setupGUI(_datGUI);
         _scene.add(_pointMap.object3D);
+
+        _nodeMap = new NodeMap(_scene);
 
 
         //_guideLine = new GuideLine(_mapData);
@@ -186,7 +188,6 @@
             {
                 _baseMap.uniforms.screenMouse.value.x = _screenMouse.x;
                 _baseMap.uniforms.screenMouse.value.y = window.innerHeight - _screenMouse.y;
-                _baseMap.uniforms.projectedMouse.value = _projectedMouse;
             }
 
             if(_pointMap) _pointMap.update(_screenMouse, _projectedMouse);
@@ -272,8 +273,18 @@
                 var mat4 = _testPlane.matrixWorld.clone();
                 mat4 = mat4.getInverse(mat4);
 
-                _projectedMouse = point.applyMatrix4(mat4);
+                var oldMouse = _projectedMouse;
 
+                _projectedMouse = point.applyMatrix4(mat4);
+                //_nodeMap.createNode(_projectedMouse);
+
+                if(oldMouse)
+                {
+                    //_nodeMap.createLink(oldMouse, _projectedMouse);
+
+                }
+
+                //_pointMap.addNode(_projectedMouse);
                 //_lookingCenter = point;
                 TweenMax.to(_lookingCenter, 1, {x:point.x, y:point.y, z:point.z, ease:Power1.easeInOut});
             }

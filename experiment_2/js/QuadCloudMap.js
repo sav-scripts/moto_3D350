@@ -122,7 +122,7 @@
 
                             //vertex.z = 0;
 
-                            var fIndex = quadIndex*4;
+                            var vIndex = quadIndex*4;
 
                             _p.quadDic[cx + "_" + cy] = quadIndex;
 
@@ -138,8 +138,8 @@
                             );
 
                             geometry.faces.push(
-                                new THREE.Face3(fIndex+1, fIndex, fIndex+2),
-                                new THREE.Face3(fIndex+1, fIndex+2, fIndex+3)
+                                new THREE.Face3(vIndex+1, vIndex, vIndex+2),
+                                new THREE.Face3(vIndex+1, vIndex+2, vIndex+3)
                             );
 
                             geometry.faceVertexUvs[0].push(

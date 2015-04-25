@@ -24,6 +24,8 @@
             "inner alpha":.25
         };
 
+        var _vertexDic = {};
+
 
         init();
         function init()
@@ -44,15 +46,15 @@
                 screenMouse:    { type:"v2", value: new THREE.Vector2() },
                 projectedMouse: { type:"v3", value: new THREE.Vector3() },
                 innerAlpha:       { type:"f", value: _p.settings["inner alpha"] }
-
             };
 
             var attributes = _p.attributes = {
 
-                size:       {	type: 'f', value: [] },
-                alpha:      {	type: 'f', value: [] },
-                randomSeed: {	type: 'f', value: [] },
-                isEdge:     {   type: "f", value: [] }
+                size:           { type: 'f', value: [] },
+                alpha:          { type: 'f', value: [] },
+                randomSeed:     { type: 'f', value: [] },
+                isEdge:         { type: "f", value: [] },
+                floatCenter:    { type: "v3", value: [] }
 
             };
 
@@ -114,20 +116,35 @@
                         //if(color < 255)
                         if(testPixel(w, h) == 1)
                         {
+                            var index = geometry.vertices.length;
                             var isEdge = testEdge(w, h);
-                            //if(!isEdge) continue;
+
+                            if(!isEdge)
+                            {
+                                if(Math.random() > .3)  continue;
+                            }
+
+                            var tx = left + w*gap;
+                            var ty = top - h*gap;
 
                             var vertex = new THREE.Vector3();
-                            vertex.x = (left + w*gap);
-                            vertex.y = (top - h*gap);
+                            vertex.x = tx;
+                            vertex.y = ty;
                             vertex.z = 0;
 
-                            geometry.vertices.push( vertex );
+                            geometry.vertices[index] = vertex;
+
+                            _vertexDic[tx + "_" + ty] =
+                            {
+                                index: index,
+                                vertex: vertex
+                            };
 
 
                             attributes.alpha.value.push(Math.random()*.9 + .1);
                             attributes.randomSeed.value.push(Math.random() *.5);
                             attributes.isEdge.value.push(isEdge? 1: 0);
+                            attributes.floatCenter.value.push(new THREE.Vector3(0, 0, -1));
 
                         }
                     }
@@ -144,7 +161,8 @@
 
                 function testEdge(w, h)
                 {
-                    return testPixel(w-1, h) == 0 || testPixel(w+1, h) == 0 || testPixel(w, h-1) == 0|| testPixel(w, h+1) == 0;
+                    return  testPixel(w-1, h) == 0 || testPixel(w+1, h) == 0 || testPixel(w, h-1) == 0|| testPixel(w, h+1) == 0 ||
+                            testPixel(w-1, h-1) == 0 || testPixel(w-1, h+1) == 0 || testPixel(w+1, h-1) == 0 || testPixel(w+1, h+1) == 0;
                 }
 
 
@@ -258,7 +276,44 @@
             _p.uniforms.time.value += _p.dTime;
             _p.uniforms.screenMouse.value.x = screenMouse.x;
             _p.uniforms.screenMouse.value.y = window.innerHeight - screenMouse.y;
-            _p.uniforms.projectedMouse.value = projectedMouse;
+
+            if(projectedMouse) _p.uniforms.projectedMouse.value = projectedMouse;
+        };
+
+        _p.addNode = function(position)
+        {
+            var r = 6;
+
+            var cx = parseInt(position.x);
+            var cy = parseInt(position.y);
+            var x, y, left = cx-r, bottom = cy - r, right = cx+r, top = cy + r;
+
+            //console.log("cx = " + cx + ", cy = " + cy);
+
+            var count = 0;
+
+            for(y=bottom; y<top; y++)
+            {
+                for(x=left; x<right; x++)
+                {
+                    var obj = _vertexDic[x + "_" + y];
+                    if(!obj) continue;
+
+                    var dx = x - cx, dy = y - cy;
+                    var distance = dx*dx + dy*dy;
+                    if(distance > r*r) continue;
+
+                    count ++;
+
+                    _p.attributes.floatCenter.value[obj.index] = new THREE.Vector3(cx, cy, r);
+
+
+                }
+            }
+
+            if(count > 0) _p.attributes.floatCenter.needsUpdate = true;
+
+            //console.log("count = " + count);
         };
 
 

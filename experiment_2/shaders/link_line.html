@@ -1,0 +1,74 @@
+<script type="x-shader/x-vertex" id="vertex">
+
+    uniform float time;
+    uniform float thickness;
+    uniform float arcLength;
+
+    varying vec2 vUv;
+
+    void main()
+    {
+        //float textureLength = 12.0;
+        //float left = (arcLength *.5 - textureLength * .5) / arcLength;
+        //float right = (arcLength *.5 + textureLength * .5) / arcLength;
+        vUv = uv;
+        //vUv.x = smoothstep(left, right, vUv.x);
+        //if(vUv.x > .5) vUv.x = .0;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+
+</script>
+
+<script type="x-shader/x-fragment" id="fragment">
+
+    #define M_PI 3.1415926535897932384626433832795
+
+    uniform sampler2D texture;
+    uniform float thickness;
+    uniform float arcLength;
+    uniform float time;
+
+    varying vec2 vUv;
+
+
+    void main()
+    {
+        float headPosition = .5;
+        float headRatio = thickness / arcLength;
+        float mark = time - headRatio;
+
+        float textureLength = arcLength - thickness;
+        float textureLengthRatio = textureLength / arcLength;
+
+        vec2 uv = vUv;
+
+        vec4 baseColor = vec4(1.0, 1.0, 1.0, .1);
+        //baseColor.w = smoothstep(.3, .7, uv.v);
+        if(uv.y < .3 || uv.y > .7) baseColor.w = .0;
+        vec4 color;
+
+        if(vUv.x > time)
+        {
+            // discard;
+            color = baseColor;
+        }
+        else if(vUv.x > mark)
+        {
+            uv.x = smoothstep(mark, mark + headRatio, uv.x);
+            color = texture2D(texture, uv);
+        }
+        else
+        {
+            uv.x = .0;
+            color = texture2D(texture, uv);
+            color.w *= smoothstep(mark-textureLengthRatio, mark, vUv.x);
+        }
+
+        //gl_FragColor = vec4(color.xyz, max(color.w, baseColor.w));
+        gl_FragColor = color * baseColor;
+        gl_FragColor.w = max(color.w, baseColor.w);
+        //gl_FragColor = color;
+
+    }
+
+</script>

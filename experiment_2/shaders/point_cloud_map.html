@@ -10,6 +10,7 @@
     attribute float size;
     attribute float alpha;
     attribute float isEdge;
+    attribute vec3 floatCenter;
 
     varying float vAlpha;
     varying float vIsEdge;
@@ -40,13 +41,8 @@
                     0.0,                                0.0,                                0.0,                                1.0);
     }
 
-    void main()
+    vec3 testCenter(vec3 vp)
     {
-        vAlpha = alpha;
-        vIsEdge = isEdge;
-
-        vec3 vp = position;
-
         float threshold = 20.0;
 
         float dist = distance(vp, projectedMouse);
@@ -68,6 +64,63 @@
             vp.y = projectedMouse.y + d.y;
             //vp.z = quadIn(pushRange, .0, -10.0, 1.0);
         }
+
+        return vp;
+    }
+
+    vec3 testCenter2(vec3 vp, vec3 floatCenter)
+    {
+        if(floatCenter.z > .0)
+        {
+            float threshold = floatCenter.z;
+            vec3 center = vec3(floatCenter.xy, .0);
+
+            float dist = distance(vp, center);
+
+            if(dist <= threshold)
+            {
+                vec3 d = vp - center;
+
+                vec3 dNormal = normalize(d);
+
+
+                float f = smoothstep(.0, threshold, length(d));
+                //float r = (quadIn(f, .0, 1.0, 1.0)*.5 + .5) * threshold;
+                float r = quadIn(f, threshold*.9, threshold*.1, 1.0);
+
+                d = dNormal * r;
+
+
+                float pushRange = smoothstep(threshold, .0, dist);
+                //float pushRange = smoothstep(threshold, threshold*.5, r);
+
+                float arc = time*.25 * pushRange;
+                mat4 matrix = rotationMatrix(vec3(.0, .0, 1.0), arc);
+
+                d = (vec4(d, 1.0)*matrix).xyz;
+
+                vp.x = center.x + d.x;
+                vp.y = center.y + d.y;
+                //vp.z = quadIn(pushRange, .0, -10.0, 1.0);
+            }
+        }
+
+
+
+        return vp;
+    }
+
+    void main()
+    {
+        vAlpha = alpha;
+        vIsEdge = isEdge;
+
+        vec3 vp = position;
+
+        vp = testCenter2(vp, floatCenter);
+
+
+
 
         float flip = mod(randomSeed, .1) > .05? 1.0: -1.0;
 
@@ -94,8 +147,8 @@
 
 
 
-
-        gl_PointSize = 1000.0 * size * ( 1.0 / length( mvPosition.xyz ) ) * dotScale;
+        float scale = isEdge == 1.0? 1.0: dotScale;
+        gl_PointSize = 1000.0 * size * ( 1.0 / length( mvPosition.xyz ) ) * scale;
 
         gl_Position = projectionMatrix * mvPosition;
 

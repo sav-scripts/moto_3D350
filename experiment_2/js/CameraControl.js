@@ -24,8 +24,6 @@
         objectControl.add("w", cameraObj, "distance", -moveSpeed, options);
         objectControl.add("s", cameraObj, "distance", moveSpeed, options);
 
-        console.log(_lookingTarget.y);
-
         _p.updateDistance = updateDistance;
 
         //updateDistance();
@@ -108,8 +106,8 @@
 
         objectControl.add("up", cameraInitPosition, "z", 10);
         objectControl.add("down", cameraInitPosition, "z", -10);
-        //objectControl.add("left", cameraInitPosition, "x", -10);
-        //objectControl.add("right", cameraInitPosition, "x", 10);
+        objectControl.add("left", cameraInitPosition, "x", -10);
+        objectControl.add("right", cameraInitPosition, "x", 10);
 
         function onUpdate()
         {
