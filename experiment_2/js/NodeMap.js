@@ -7,29 +7,98 @@
     {
         var _p = this;
 
-        var _nodeList = [];
-
-        _p.createLink = function(start, end)
+        _p.settings =
         {
-            var line = new LinkLine(start, end);
-
-            _scene.add(line.object3D);
-
+            "line speed":2,
+            "head alpha":.7,
+            "tail alpha":.25,
+            "tail length": 50
         };
 
-        _p.createNode = function(position, string)
-        {
-            var node = new NodeCore(position);
-            _scene.add(node.object3D);
 
-            var nodeLabel = new NodeLabel(string);
+        var _sampleDom = $(".city_label")[0];
+        $(_sampleDom).css("display", "none");
+
+        var _nodeList = [];
+
+        var texture = THREE.ImageUtils.loadTexture("textures/sprites/guide_line_light.png");
+
+        var uniforms =
+        {
+            size:       {type:"f", value:30},
+            texture:    {type:"t", value:texture},
+            normalColor:    {type:"v4", value:new THREE.Vector4(1,0,0,1)},
+            oldColor:    {type:"v4", value:new THREE.Vector4(1,0,0,.35)}
+        };
+
+        var attributes =
+        {
+            nodeType:   {type:"f", value:[]}
+        };
+
+
+
+        var geometry = new THREE.Geometry;
+        var material = new THREE.ShaderMaterial
+        ({
+            uniforms: uniforms,
+            attributes: attributes,
+            vertexShader: ShaderLoader.getShader("node_map", "#node_vertex"),
+            fragmentShader: ShaderLoader.getShader("node_map", "#node_fragment"),
+            //blending: THREE.AdditiveBlending,
+            transparent:true,
+            depthTest: false
+        });
+
+        /*
+        var material = new THREE.PointCloudMaterial
+        ({
+            map: texture,
+            transparent: true,
+            depthTest: false,
+            color: 0xff0000,
+            size: 30,
+            blending: THREE.AdditiveBlending
+        });
+        */
+
+        _p.object3D = new THREE.PointCloud(geometry, material);
+        _scene.add(_p.object3D);
+
+        var _linkLine = new LinkLine(_p.settings);
+        _scene.add(_linkLine.object3D);
+
+
+        _p.createNode = function(position, englishName, chineseName, isOld)
+        {
+            geometry.vertices.push(position.clone());
+
+            attributes.nodeType.value.push(isOld? 1: 0);
+
+
+            var nodeLabel = new NodeLabel(_sampleDom, englishName, chineseName, isOld);
 
             _nodeList.push(
+                {
+                    position: position,
+                    label: nodeLabel
+                });
+        };
+
+        _p.createLink = function(start, end, num, isOld)
+        {
+            if(!num) num = parseInt(1 + Math.random()*10)*10;
+
+            var i;
+
+            for(i=0;i<num;i++)
             {
-                node: node,
-                position: position,
-                label: nodeLabel
-            });
+                _linkLine.addLine(start, end, isOld);
+
+                //_lineLineList.push(line);
+            }
+
+
         };
 
         _p.update = function()
@@ -40,8 +109,26 @@
 
                 var screenPosition = MyThreeHelper.worldToScreen(obj.position, _renderer, _camera);
 
-                $(obj.label.domElement).css("left", screenPosition.x).css("top", screenPosition.y);
+                $(obj.label.domElement).css("left", screenPosition.x - obj.label.width *.5).css("top", screenPosition.y + 14);
 
+            }
+        };
+
+        _p.setupGUI = function(rootGui)
+        {
+            var gui = rootGui.addFolder("Node Link Line");
+            //gui.open();
+
+            var obj = _p.settings;
+
+            gui.add(obj, "line speed", 1, 100).onChange(updateLineSettings);
+            gui.add(obj, "head alpha", 0, 1).onChange(updateLineSettings);
+            gui.add(obj, "tail alpha", 0, 1).onChange(updateLineSettings);
+            gui.add(obj, "tail length", 0, 200).onChange(updateLineSettings);
+
+            function updateLineSettings()
+            {
+                _linkLine.updateSettings(_p.settings);
             }
         };
     };
@@ -52,146 +139,172 @@
 
 (function(){
 
-    var _lineTexture = new THREE.ImageUtils.loadTexture("textures/sprites/link_line.png");
-
-    window.LinkLine = function(start, end)
+    window.LinkLine = function(settings)
     {
         var _p = this;
 
-
-
-        //console.log("create");
-
-        var thickness = 2;
-        var halfThickness = thickness*.5;
-        var geometry = new THREE.Geometry();
-
-        var dVec = end.clone().sub(start);
-        var totalLength = dVec.length();
-
-        //var arcHeight = 20;
-
-        var arcHeight = totalLength * .25;
-
-        var numSegments = Math.ceil(totalLength / 2);
-        //var numSegments = 20;
-
-        var x0, z0, x1, z1, vIndex = 0;
-
-
-        var arcLength = 0;
-
-        var dArc = Math.PI / numSegments;
-
-        for(var i=0;i<numSegments;i++)
-        {
-            var arc0 = dArc * i;
-            var arc1 = dArc * (i+1);
-
-            var u0 = i/numSegments;
-            var u1 = (i+1)/numSegments;
-
-
-            x0 = -Math.cos(arc0) * totalLength*.5 + totalLength * .5;
-            z0 = Math.sin(arc0) * arcHeight;
-
-            x1 = -Math.cos(arc1) * totalLength*.5 + totalLength * .5;
-            z1 = Math.sin(arc1) * arcHeight;
-
-            var dx = x1 - x0;
-            var dz = z1 - z0;
-            arcLength += Math.sqrt(dx*dx + dz*dz);
-
-
-            geometry.vertices.push
-            (
-                new THREE.Vector3(x0, halfThickness, z0),
-                new THREE.Vector3(x1, halfThickness, z1),
-                new THREE.Vector3(x0, -halfThickness, z0),
-                new THREE.Vector3(x1, -halfThickness, z1)
-            );
-
-            geometry.faces.push
-            (
-                new THREE.Face3(vIndex+1, vIndex, vIndex+2),
-                new THREE.Face3(vIndex+1, vIndex+2, vIndex+3)
-            );
-
-            geometry.faceVertexUvs[0].push(
-                [
-                    new THREE.Vector2(u1, 0),
-                    new THREE.Vector2(u0, 0),
-                    new THREE.Vector2(u0, 1)
-                ],
-                [
-                    new THREE.Vector2(u1, 1),
-                    new THREE.Vector2(u0, 0),
-                    new THREE.Vector2(u1, 0)
-                ]
-            );
-
-            vIndex += 4;
-        }
-
         var uniforms = _p.uniforms =
         {
-            texture:    { type:"t", value: _lineTexture },
+            speed:       { type:"f", value:settings["line speed"] },
             time:       { type:"f", value: 0 },
-            thickness:  { type: "f", value: thickness },
-            arcLength:  { type: "f", value: arcLength }
+            arcLength:  { type: "f", value: 0 },
+            headAlpha:  { type:"f", value: settings["head alpha"] },
+            tailAlpha:  { type:"f", value: settings["tail alpha"] },
+            tailLength:  { type:"f", value: settings["tail length"] }
         };
 
         var attributes = _p.attributes =
         {
-
+            progress:   {type:"f", value:[]},
+            randomSeed:   {type:"f", value:[]},
+            isOld:      {type:"f", value:[]}
         };
 
 
-        var material = _p.material = new THREE.ShaderMaterial(
+        var material = _p.material = new THREE.ShaderMaterial
+        ({
+            uniforms: uniforms,
+            attributes: attributes,
+            vertexShader: ShaderLoader.getShader("node_map", "#link_line_vertex"),
+            fragmentShader: ShaderLoader.getShader("node_map", "#link_line_fragment"),
+            blending: THREE.AdditiveBlending,
+            transparent:true,
+            depthTest: false,
+            side: THREE.DoubleSide
+        });
+
+
+        var geometry = new THREE.Geometry();
+
+        _p.object3D = new THREE.Line(geometry, material, THREE.LinePieces);
+
+
+
+        var _tl = new TimelineMax({repeat:-1});
+        _tl.add(function()
+        {
+            _p.uniforms.time.value += .033;
+        },.033);
+
+        _p.addLine = function(start, end, isOld)
+        {
+            var dVec = end.clone().sub(start);
+
+            var zArc = Math.atan2(dVec.y, dVec.x);
+
+            var totalLength = dVec.length();
+
+            //var arcHeight = 20;
+
+            var arcHeight = totalLength * .25;
+
+            var numSegments = Math.ceil(totalLength / 2);
+            //var numSegments = 20;
+
+
+            var x0, y0, z0, x1, z1, y1;
+            var haflRandomRange = 5;
+            var yRandom = (Math.random()*2 - 1)*haflRandomRange;
+            arcHeight += (Math.random() * 2 - 1) * haflRandomRange;
+
+            var randomSeed = Math.random();
+
+            /*
+            if(isOld)
             {
-                uniforms: uniforms,
-                attributes: attributes,
-                vertexShader: ShaderLoader.getShader("link_line", "#vertex"),
-                fragmentShader: ShaderLoader.getShader("link_line", "#fragment"),
-                //blending: THREE.AdditiveBlending,
-                transparent:true,
-                depthTest: false,
-                side: THREE.DoubleSide,
-                wireframe:false
-            });
+                arcHeight = 0;
+                yRandom = 0;
+            }
+            */
 
 
+            var arcLength = 0;
 
-        /*var material = new THREE.MeshBasicMaterial(
+            var dArc = Math.PI / numSegments;
+
+            var axis = new THREE.Vector3(0,0,1);
+
+            var isOldValue = isOld? 1: 0;
+
+            for(var i=0;i<numSegments;i++)
             {
-                wireframe:true
-                //map:_lineTexture,
-                //transparent: true,
-                //depthTest: false
-            });*/
+                var arc0 = dArc * i;
+                var arc1 = dArc * (i+1);
+
+
+                var u0 = i/numSegments;
+                var u1 = (i+1)/numSegments;
+
+                y0 = yRandom * (1-Math.abs(u0 * 2 - 1));
+                y1 = yRandom * (1-Math.abs(u1 * 2 - 1));
+
+
+                x0 = -Math.cos(arc0) * totalLength*.5 + totalLength * .5;
+                z0 = Math.sin(arc0) * arcHeight;
+
+                x1 = -Math.cos(arc1) * totalLength*.5 + totalLength * .5;
+                z1 = Math.sin(arc1) * arcHeight;
+
+                var dx = x1 - x0;
+                var dz = z1 - z0;
+                arcLength += Math.sqrt(dx*dx + dz*dz);
+
+                var vec0 = new THREE.Vector3(x0, y0, z0);
+                var vec1 = new THREE.Vector3(x1, y1, z1);
+
+                vec0.applyAxisAngle(axis, zArc);
+                vec1.applyAxisAngle(axis, zArc);
+
+                vec0.add(start);
+                vec1.add(start);
+
+                geometry.vertices.push(vec0, vec1);
+                attributes.progress.value.push(u0, u1);
+
+                attributes.randomSeed.value.push(randomSeed, randomSeed);
+                attributes.isOld.value.push(isOldValue, isOldValue);
+
+
+                /*
+                if(isOldLine)
+                {
+                    attributes.randomSeed.value.push(Math.random(), Math.random());
+                }
+                else
+                {
+                    attributes.randomSeed.value.push(randomSeed, randomSeed);
+                }
+                */
+            }
+
+            uniforms.arcLength.value = arcLength;
+
+
+            //var material = new THREE.LineBasicMaterial({color:0xffffff});
 
 
 
 
-        var object3D = _p.object3D = new THREE.Mesh(geometry, material);
+            /*
+            var arc = Math.atan2(dVec.y, dVec.x);
 
-        var arc = Math.atan2(dVec.y, dVec.x);
+            object3D.position.x = start.x;
+            object3D.position.y = start.y;
+            object3D.position.z = 0;
+            object3D.rotation.z = arc;
+            */
 
-        object3D.position.x = start.x;
-        object3D.position.y = start.y;
-        object3D.position.z = 4;
-        object3D.rotation.z = arc;
 
-        //console.log("Arc = " + arc);
+        };
 
-        //var duration = arcLength / 20;
-        var duration = 2.1;
+        _p.updateSettings = function(settings)
+        {
+            _p.uniforms.speed.value = settings["line speed"];
+            _p.uniforms.headAlpha.value = settings["head alpha"];
+            _p.uniforms.tailAlpha.value = settings["tail alpha"];
+            _p.uniforms.tailLength.value = settings["tail length"];
+        };
 
-        var tl = new TimelineMax({repeat:-1});
-        tl.set(uniforms.time, {value:0});
-        tl.to(uniforms.time, duration, {value:2, ease:Power1.easeIn});
-
-        tl.progress(Math.random());
 
     };
 
@@ -199,113 +312,30 @@
 
 }());
 
-(function(){
 
-    window.NodeCore = function(position)
+    (function(){
+
+    window.NodeLabel = function(sample, englishName, chineseName)
     {
         var _p = this;
 
-        var _pen =
-        {
-            position: null
-        };
-
-        var uniforms = _p.uniforms =
-        {
-            time:       { type:"f", value: 0},
-            color:      { type:"v3", value: new THREE.Vector3(1.0, 1.0, 1.0) },
-            maxAlpha:      { type:"f", value:.6 },
-            minAlpha:      { type:"f", value:.13 },
-            center:     { type:"v3", value: position.clone() },
-            numVertices:    { type: "f", value:0}
-        };
-
-        var attributes = _p.attributes =
-        {
-            index:  { type:"f", value:[] }
-        };
-
-        var material = new THREE.ShaderMaterial(
-        {
-            uniforms: _p.uniforms,
-            attributes: _p.attributes,
-            vertexShader: ShaderLoader.getShader("node_line", "#vertex"),
-            fragmentShader: ShaderLoader.getShader("node_line", "#fragment"),
-            //blending: THREE.AdditiveBlending,
-            transparent:true,
-            depthTest: false,
-            side: THREE.DoubleSide
-
-        });
-
-        var geometry = new THREE.Geometry();
-
-        var vec = new THREE.Vector3(2, 0, 2);
-
-        var numConer = 4;
-        var dArc = Math.PI*2/numConer;
-        var axis = new THREE.Vector3(0,0,1);
-
-        var top = new THREE.Vector3(position.x, position.y, 4);
-        var bottom = new THREE.Vector3(position.x, position.y, 0);
-
-        for(var i=0;i<=numConer;i++)
-        {
-            var v0 = vec.clone().applyAxisAngle(axis, dArc*i).add(position);
-            var v1 = vec.clone().applyAxisAngle(axis, dArc*(i+1)).add(position);
-
-            moveTo(v0);
-            lineTo(v1);
-            lineTo(top);
-            lineTo(v0);
-            lineTo(bottom);
-            lineTo(v1);
-        }
-
-        uniforms.numVertices.value = geometry.vertices.length;
-
-        _p.object3D = new THREE.Line( geometry, material, THREE.LinePieces );
-
-
-        var duration = 4;
-
-        var tl = new TimelineMax({repeat:-1});
-        tl.set(_p.uniforms.time, {value:0});
-        tl.to(_p.uniforms.time, duration, {value:1, ease:Linear.easeNone});
-
-        function lineTo(target)
-        {
-            var index = geometry.vertices.length;
-            attributes.index.value.push(index, index+1);
-
-            geometry.vertices.push(_pen.position, target);
-
-            _pen.position = target;
-        }
-
-        function moveTo(target)
-        {
-            _pen.position = target;
-        }
-    };
-
-    window.NodeCore.prototype.constructor = window.NodeCore;
-
-}());
-
-(function(){
-
-    window.NodeLabel = function(_string)
-    {
-        var _p = this;
-
-        var dom = _p.domElement = document.createElement('div');
-        dom.className = "city_name";
-        dom.innerHTML = _string;
-
+        var dom = _p.domElement = $(sample).clone();
+        $(dom).css("display", "block");
         $(".city_label_layer").append(dom);
 
-        $(dom).css("margin-left", -$(dom).width() *.5);
+        var $cityName = $(dom).find(".city_name");
+        var $basement = $(dom).find(".basement");
+
+        $(dom).find(".name_en").text(englishName);
+        $(dom).find(".name_ch").text(chineseName);
+
+        _p.width = $cityName.width() + 40;
+
+        $(dom).width(_p.width);
+        $basement.width(_p.width - 8);
+        $cityName.css("left", "50%").css("margin-left", -_p.width *.5 + 20);
+
+
     };
 
     window.NodeLabel.prototype.constructor = window.NodeLabel;

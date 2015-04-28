@@ -56,7 +56,7 @@
 
         getWorldMapData(function()
         {
-            ShaderLoader.load(["base_map", "point_cloud_map", "quad_cloud_map", "guide_line", "link_line", "node_line", "video_map"], build);
+            ShaderLoader.load(["base_map", "point_cloud_map", "guide_line", "node_map"], build);
         });
 
     };
@@ -90,7 +90,8 @@
 
         var obj =
         {
-            background: $("body").css("background-color")
+            background: $("body").css("background-color"),
+            "show city name": true
         };
 
         _datGUI = new dat.GUI();
@@ -101,6 +102,11 @@
         folder.addColor(obj, "background").onChange(function(v)
         {
             $("body").css("background-color", v);
+        });
+        folder.add(obj, "show city name").onChange(function(v)
+        {
+            var string = v? "block": "none";
+            $(".city_label_layer").css("display", string);
         });
 
         trace("pixel ratio = " + window.devicePixelRatio);
@@ -113,7 +119,7 @@
 
 
         _baseMap = new BaseMap(_mapData);
-        _baseMap.setupGUI(_datGUI);
+        _baseMap.setupGUI(folder);
         _scene.add(_baseMap.object3D);
 
         //_videoMap = new VideoMap(_mapData);
@@ -127,6 +133,7 @@
         _scene.add(_pointMap.object3D);
 
         _nodeMap = new NodeMap(_scene, _renderer, _camera);
+        _nodeMap.setupGUI(_datGUI);
 
 
 
@@ -181,7 +188,7 @@
         //new ObjectControl(_scene);
         _cameraControl = new CameraControl(_camera, _scene, _lookingCenter);
 
-        //setupNodes();
+        setupNodes();
 
         render();
 
@@ -229,37 +236,40 @@
     {
         var citys = [];
 
-        addCity(new THREE.Vector3(-20, 77, 0), "City 0");
-        addCity(new THREE.Vector3(51, 67, 0), "City 1");
-        addCity(new THREE.Vector3(118, 36, 0), "City 2");
-        addCity(new THREE.Vector3(279, 53, 0), "City 3");
-        addCity(new THREE.Vector3(355.5, -3.4, 0), "City 4");
+        addCity(new THREE.Vector3(-64, 77, 0), "BERLIN", "柏林", true);
+        addCity(new THREE.Vector3(7, 67, 0), "BERLIN", "柏林", true);
+        addCity(new THREE.Vector3(74, 36, 0), "BERLIN", "柏林", true);
+        addCity(new THREE.Vector3(235, 53, 0), "BERLIN", "柏林");
+        addCity(new THREE.Vector3(205, 153, 0), "BERLIN", "柏林");
+        addCity(new THREE.Vector3(311.5, -3.4, 0), "TAIWAN", "台灣");
+        addCity(new THREE.Vector3(197, -5, 0), "BERLIN", "柏林");
+        addCity(new THREE.Vector3(357, 50, 0), "BERLIN", "柏林");
 
-        addLink(0, 1);
-        addLink(1, 2);
-        addLink(2, 3);
-        addLink(3, 4);
+        addLink(0, 1, 20, true);
+        addLink(1, 2, 20, true);
+        addLink(2, 3, 20, true);
+        addLink(3, 4, 20);
+        addLink(3, 5, 560);
+        addLink(3, 6, 40);
+        addLink(3, 7, 80);
 
 
         //new NodeLabel("test", new THREE.Vector3(-20, 77, 0), _camera.project)
 
 
-        function addCity(position, cityName)
+        function addCity(position, englishName, chineseName, isOld)
         {
             citys.push({position: position});
-
-            _nodeMap.createNode(position, cityName);
+            _nodeMap.createNode(position, englishName, chineseName, isOld);
             //_pointMap.addNode(position);
-
-
         }
 
-        function addLink(startIndex, endIndex)
+        function addLink(startIndex, endIndex, num, isOld)
         {
             var startPosition = citys[startIndex].position;
             var endPosition = citys[endIndex].position;
 
-            _nodeMap.createLink(startPosition, endPosition);
+            _nodeMap.createLink(startPosition, endPosition, num, isOld);
         }
     }
 

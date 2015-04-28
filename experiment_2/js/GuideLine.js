@@ -8,8 +8,7 @@
         var _p = this;
 
         var _lights = [];
-        var _activedLights = [];
-        var _numLights = 30;
+        var _numLights = 10;
 
         var _numRows = 0, _numCols = 0;
         var LINE_GAP = 40, THICKNESS = 2, HALF_THICKNESS = THICKNESS*.5;
@@ -27,7 +26,7 @@
 
             var tl = new TimelineMax({repeat:-1});
             activeOne();
-            tl.add(activeOne,.3);
+            tl.add(activeOne,1);
 
             //activeOne();
 

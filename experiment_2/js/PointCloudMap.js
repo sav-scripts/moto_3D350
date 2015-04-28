@@ -126,6 +126,8 @@
                                 if(Math.random() > .3)  continue;
                             }
 
+                            //if(isEdge) continue;
+
                             var tx = left + w*gap;
                             var ty = top - h*gap;
 
@@ -192,7 +194,8 @@
             {
                 for(i=0;i<_p.geometry.vertices.length;i++)
                 {
-                    _p.attributes.size.value[i] = (Math.random() *.9 + .1) * window.devicePixelRatio;
+                    //_p.attributes.size.value[i] = (Math.random() *.9 + .1) * window.devicePixelRatio;
+                    _p.attributes.size.value[i] = (Math.random() *.9 + .1);
                     _p.attributes.size.needsUpdate = true;
                 }
             }
@@ -200,7 +203,8 @@
             {
                 for(i=0;i<_p.geometry.vertices.length;i++)
                 {
-                    _p.attributes.size.value[i] = Math.easeInQuart(Math.random() *.9 + .1, 0, 1, 1) * window.devicePixelRatio;
+                    //_p.attributes.size.value[i] = Math.easeInQuart(Math.random() *.9 + .1, 0, 1, 1) * window.devicePixelRatio;
+                    _p.attributes.size.value[i] = Math.easeInQuart(Math.random() *.9 + .1, 0, 1, 1);
                     _p.attributes.size.needsUpdate = true;
                 }
             }

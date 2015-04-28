@@ -23,6 +23,9 @@
         vector.x = ( vector.x * widthHalf ) + widthHalf;
         vector.y = - ( vector.y * heightHalf ) + heightHalf;
 
+        vector.x /= window.devicePixelRatio;
+        vector.y /= window.devicePixelRatio;
+
         return vector;
     };
 

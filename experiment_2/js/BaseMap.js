@@ -9,7 +9,7 @@
 
         _p.settings =
         {
-            alpha:.03
+            "base map alpha":.03
         };
 
         //var texture = new THREE.Texture(_mapData.image);
@@ -45,13 +45,13 @@
 
         _p.object3D = new THREE.Mesh( geometry, material );
 
-        _p.setupGUI = function(rootGui)
+        _p.setupGUI = function(gui)
         {
-            var gui = rootGui.addFolder("Base Map");
+            //var gui = rootGui.addFolder("Base Map");
 
             var obj = _p.settings;
 
-            gui.add(obj, "alpha", 0,1).onChange(function(v)
+            gui.add(obj, "base map alpha", 0,1).onChange(function(v)
             {
                 _p.uniforms.alpha.value = v;
             });
