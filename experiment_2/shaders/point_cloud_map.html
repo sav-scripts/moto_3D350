@@ -162,6 +162,7 @@
     uniform vec3 dotColor;
     uniform sampler2D texture;
     uniform float innerAlpha;
+    uniform float outerAlpha;
 
     varying float vAlpha;
     varying float vIsEdge;
@@ -172,7 +173,8 @@
         float alpha = vAlpha;
 
         //if(edgeMode == 1 && vIsEdge <= .5) discard;
-        if(vIsEdge <= .5) alpha *= innerAlpha;
+
+        (vIsEdge <= .5)? alpha *= innerAlpha: alpha *= outerAlpha;
 
 
         vec4 outColor = texture2D( texture, gl_PointCoord );

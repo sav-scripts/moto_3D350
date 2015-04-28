@@ -1,0 +1,60 @@
+<script id="vertex" type="x-shader/x-vertex">
+
+
+    mat4 rotationMatrix(vec3 axis, float angle)
+    {
+        axis = normalize(axis);
+        float s = sin(angle);
+        float c = cos(angle);
+        float oc = 1.0 - c;
+
+
+        return mat4(oc * axis.x * axis.x + c,           oc * axis.x * axis.y - axis.z * s,  oc * axis.z * axis.x + axis.y * s,  0.0,
+                    oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,  0.0,
+                    oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c,           0.0,
+                    0.0,                                0.0,                                0.0,                                1.0);
+    }
+
+    #define M_PI 3.1415926535897932384626433832795
+
+    uniform float time;
+    uniform vec3 center;
+    uniform float numVertices;
+
+    attribute float index;
+
+    varying float indexRatio;
+
+    void main()
+    {
+        indexRatio = mod((index / numVertices + (1.0-time))*1.0, 1.0);
+
+        vec3 dVec = position - center;
+        float arc = time * M_PI * 2.0;
+        mat4 matrix = rotationMatrix(vec3(.0, .0, 1.0), arc);
+
+        vec3 newPosition = (vec4(dVec, 1.0) * matrix).xyz + center;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition, 1.0 );
+
+    }
+
+
+</script>
+
+<script id="fragment" type="x-shader/x-fragment">
+
+    uniform vec3 color;
+    uniform float maxAlpha;
+    uniform float minAlpha;
+
+    varying float indexRatio;
+
+    void main()
+    {
+
+        gl_FragColor = vec4( color, indexRatio > .9? maxAlpha: minAlpha );
+
+    }
+
+</script>

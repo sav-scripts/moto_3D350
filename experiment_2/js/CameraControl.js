@@ -9,7 +9,7 @@
     {
         var _p = this;
 
-        var cameraInitPosition = new THREE.Vector3(0, -400*2, 300*2);
+        var cameraInitPosition = new THREE.Vector3(0, -300*2, 300*2);
 
         var options = {min:50, max:500*2};
 

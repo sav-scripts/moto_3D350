@@ -39,20 +39,24 @@
     var _mapPath = "images/big_blank.png";
 
     var _testPlane;
-    var _baseMap, _pointMap, _guideLine, _nodeMap;
+    var _baseMap, _pointMap, _guideLine, _nodeMap, _videoMap;
 
     var _datGUI;
+
+    var _showui = false;
 
     /** init **/
     Main.init = function()
     {
+        if(Utility.urlParams.showui == "1") _showui = true;
+
         applySetting();
 
         setupStats();
 
         getWorldMapData(function()
         {
-            ShaderLoader.load(["map_0", "point_cloud_map", "quad_cloud_map", "guide_line", "link_line"], build);
+            ShaderLoader.load(["base_map", "point_cloud_map", "quad_cloud_map", "guide_line", "link_line", "node_line", "video_map"], build);
         });
 
     };
@@ -60,7 +64,6 @@
     function build()
     {
         //onWindowResize();
-
 
 
 
@@ -78,7 +81,11 @@
         _renderer = new THREE.WebGLRenderer({ antialiasing: true, alpha:true });
         _renderer.setPixelRatio(window.devicePixelRatio);
         _renderer.setClearColor( 0x333333,.2);
-        document.body.appendChild(_renderer.domElement);
+
+        //document.body.appendChild(_renderer.domElement);
+        $(".city_label_layer").before(_renderer.domElement);
+
+
 
 
         var obj =
@@ -87,6 +94,8 @@
         };
 
         _datGUI = new dat.GUI();
+
+        if(!_showui) $(_datGUI.domElement).detach();
         setupTrace();
         var folder = _datGUI.addFolder("Basic");
         folder.addColor(obj, "background").onChange(function(v)
@@ -97,11 +106,18 @@
         trace("pixel ratio = " + window.devicePixelRatio);
 
 
+        _guideLine = new GuideLine(_mapData, _scene);
+        _scene.add(_guideLine.object3D);
+        _guideLine.activeLights();
 
 
 
-        //_baseMap = new BaseMap(_mapData);
-        //_scene.add(_baseMap.object3D);
+        _baseMap = new BaseMap(_mapData);
+        _baseMap.setupGUI(_datGUI);
+        _scene.add(_baseMap.object3D);
+
+        //_videoMap = new VideoMap(_mapData);
+        //_scene.add(_videoMap.object3D);
 
 
         setupMouseTestPlane();
@@ -110,11 +126,9 @@
         _pointMap.setupGUI(_datGUI);
         _scene.add(_pointMap.object3D);
 
-        _nodeMap = new NodeMap(_scene);
+        _nodeMap = new NodeMap(_scene, _renderer, _camera);
 
 
-        //_guideLine = new GuideLine(_mapData);
-        //_scene.add(_guideLine.object3D);
 
         _raycaster = new THREE.Raycaster();
         _raycaster.params.PointCloud.threshold = _threshold;
@@ -167,6 +181,8 @@
         //new ObjectControl(_scene);
         _cameraControl = new CameraControl(_camera, _scene, _lookingCenter);
 
+        //setupNodes();
+
         render();
 
 
@@ -175,14 +191,12 @@
         {
             requestAnimationFrame(render);
 
+            _cameraControl.updateDistance();
+
             if(_guideLine)
             {
                 _guideLine.uniforms.time.value += .002;
             }
-
-
-
-
 
             if(_baseMap)
             {
@@ -192,7 +206,13 @@
 
             if(_pointMap) _pointMap.update(_screenMouse, _projectedMouse);
 
-            _cameraControl.updateDistance();
+
+
+
+            if(_nodeMap)
+            {
+                _nodeMap.update();
+            }
 
             //_camera.rotation.reorder("YZX");
 
@@ -202,6 +222,44 @@
 
             _renderer.render(_scene, _camera);
             _stats.update();
+        }
+    }
+
+    function setupNodes()
+    {
+        var citys = [];
+
+        addCity(new THREE.Vector3(-20, 77, 0), "City 0");
+        addCity(new THREE.Vector3(51, 67, 0), "City 1");
+        addCity(new THREE.Vector3(118, 36, 0), "City 2");
+        addCity(new THREE.Vector3(279, 53, 0), "City 3");
+        addCity(new THREE.Vector3(355.5, -3.4, 0), "City 4");
+
+        addLink(0, 1);
+        addLink(1, 2);
+        addLink(2, 3);
+        addLink(3, 4);
+
+
+        //new NodeLabel("test", new THREE.Vector3(-20, 77, 0), _camera.project)
+
+
+        function addCity(position, cityName)
+        {
+            citys.push({position: position});
+
+            _nodeMap.createNode(position, cityName);
+            //_pointMap.addNode(position);
+
+
+        }
+
+        function addLink(startIndex, endIndex)
+        {
+            var startPosition = citys[startIndex].position;
+            var endPosition = citys[endIndex].position;
+
+            _nodeMap.createLink(startPosition, endPosition);
         }
     }
 
@@ -275,16 +333,27 @@
 
                 var oldMouse = _projectedMouse;
 
+                //console.log("point = " + point.x + ", " + point.y);
+
                 _projectedMouse = point.applyMatrix4(mat4);
-                //_nodeMap.createNode(_projectedMouse);
+
+
+
+
+
+
+                /*
+                _nodeMap.createNode(_projectedMouse);
 
                 if(oldMouse)
                 {
-                    //_nodeMap.createLink(oldMouse, _projectedMouse);
+                    _nodeMap.createLink(oldMouse, _projectedMouse);
 
                 }
 
-                //_pointMap.addNode(_projectedMouse);
+                _pointMap.addNode(_projectedMouse);
+                */
+
                 //_lookingCenter = point;
                 TweenMax.to(_lookingCenter, 1, {x:point.x, y:point.y, z:point.z, ease:Power1.easeInOut});
             }
@@ -379,6 +448,9 @@
 
         image.src = _mapPath;
 
+        _mapData.texture = new THREE.ImageUtils.loadTexture(_mapPath);
+        _mapData.texture.minFilter = THREE.LinearFilter;
+
 
 //            document.body.appendChild( canvas );
     }
@@ -391,7 +463,7 @@
         _stats.domElement.style.position = 'absolute';
         _stats.domElement.style.top = '0px';
         _stats.domElement.style.zIndex = 999;
-        document.body.appendChild( _stats.domElement );
+        if(_showui) document.body.appendChild( _stats.domElement );
     }
 
 }());

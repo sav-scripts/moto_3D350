@@ -16,12 +16,13 @@
         _p.settings =
         {
             "dot color": "#ffffff",
-            "dot initialize": 0,
-            "dot scale": 1.0,
+            "dot initialize": 1,
+            "dot scale": 10.0,
             "dot texture": 0,
-            "float speed":.2,
-            "float scale":.3,
-            "inner alpha":.25
+            "float speed":.05,
+            "float scale":2,
+            "inner alpha":.5,
+            "outer alpha":.0
         };
 
         var _vertexDic = {};
@@ -45,7 +46,8 @@
                 texture:        { type: "t", value: _p.dotTextures[0] },
                 screenMouse:    { type:"v2", value: new THREE.Vector2() },
                 projectedMouse: { type:"v3", value: new THREE.Vector3() },
-                innerAlpha:       { type:"f", value: _p.settings["inner alpha"] }
+                innerAlpha:       { type:"f", value: _p.settings["inner alpha"] },
+                outerAlpha:       { type:"f", value: _p.settings["outer alpha"] }
             };
 
             var attributes = _p.attributes = {
@@ -208,7 +210,7 @@
         _p.setupGUI = function(rootGui)
         {
             var gui = rootGui.addFolder("Point Cloud Map");
-            gui.open();
+            //gui.open();
 
             var obj = _p.settings;
 
@@ -227,11 +229,15 @@
                _p.uniforms.dotScale.value = Math.round(v);
             });
 
-            gui.add(obj, "dot texture", 0, 1).listen().onChange(function(v)
+            gui.add(obj, "dot texture", 0, 1).listen().onChange(onDotTextureChange);
+
+            function onDotTextureChange(v)
             {
                 v = Math.round(v);
                 obj["dot texture"] = v;
                 _p.uniforms.texture.value = _p.dotTextures[v];
+
+                /*
                 if(v == 0)
                 {
                     obj["dot scale"] = _p.uniforms.dotScale.value = 1;
@@ -240,12 +246,11 @@
                 {
                     obj["dot scale"] = _p.uniforms.dotScale.value = 5;
                 }
-            });
+                */
 
-            gui.add(obj, "float speed",.002, 1).onChange(function(v)
-            {
-                _p.dTime = v;
-            });
+            }
+
+            gui.add(obj, "float speed",.002, 1);
 
             gui.add(obj, "float scale",.0, 100).onChange(function(v)
             {
@@ -255,6 +260,11 @@
             gui.add(obj, "inner alpha", 0, 1).onChange(function(v)
             {
                 _p.uniforms.innerAlpha.value = v;
+            });
+
+            gui.add(obj, "outer alpha", 0, 1).onChange(function(v)
+            {
+                _p.uniforms.outerAlpha.value = v;
             });
 
             function getRGB(c)
@@ -269,11 +279,13 @@
                 );
 
             }
-        }
+
+            onDotTextureChange(1);
+        };
 
         _p.update = function(screenMouse, projectedMouse)
         {
-            _p.uniforms.time.value += _p.dTime;
+            _p.uniforms.time.value += _p.settings["float speed"];
             _p.uniforms.screenMouse.value.x = screenMouse.x;
             _p.uniforms.screenMouse.value.y = window.innerHeight - screenMouse.y;
 
@@ -305,7 +317,7 @@
 
                     count ++;
 
-                    _p.attributes.floatCenter.value[obj.index] = new THREE.Vector3(cx, cy, r);
+                    _p.attributes.floatCenter.value[obj.index] = new THREE.Vector3(position.x, position.y, r);
 
 
                 }

@@ -1,93 +1,76 @@
-<script type="x-shader/x-vertex" id="vertex">
+<script type="x-shader/x-vertex" id="line_vertex">
 
-    attribute float lineType;
-    attribute float randomSeed;
-    attribute float speed;
+    attribute float progress;
+    attribute float positionProgress;
 
-    varying vec2 vUv;
-    varying float vLineType;
-    varying float vRandomSeed;
-    varying float vSpeed;
-
+    varying float vProgress;
+    varying float vPositionProgress;
 
     void main()
     {
-        vUv = uv;
-        vLineType = lineType;
-        vRandomSeed = randomSeed;
-        vSpeed = speed;
+        vProgress = progress;
+        vPositionProgress = positionProgress;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
 
 </script>
 
-<script type="x-shader/x-fragment" id="fragment">
+<script type="x-shader/x-fragment" id="line_fragment">
 
-    //uniform sampler2D texture;
+    uniform vec3 color;
 
-    uniform float time;
+    varying float vProgress;
+    varying float vPositionProgress;
 
-    //varying vec4 vColor;
+    void main()
+    {
+        float alpha0 = .06;
+
+        float alpha1 = 1.0;
+
+        if(vProgress <= .25) alpha1 = smoothstep(.0, .25, vProgress);
+        if(vProgress >= .75) alpha1 = smoothstep(1.0, .75, vProgress);
+
+        float alpha2 = 1.0;
+
+        if(vPositionProgress <= .25) alpha2 = smoothstep(.0, .25, vPositionProgress);
+        if(vPositionProgress >= .75) alpha2 = smoothstep(1.0, .75, vPositionProgress);
+
+
+        gl_FragColor = vec4(color, alpha0*alpha1*alpha2);
+
+    }
+
+</script>
+
+<script type="x-shader/x-vertex" id="light_vertex">
+
+    uniform float progress;
+
     varying vec2 vUv;
 
-    varying float vLineType;
-    varying float vRandomSeed;
-    varying float vSpeed;
-
-    float quadOut(float t, float b, float c, float d)
+    void main()
     {
-        t /= d;
-        return -c * t*(t-2.0) + b;
+        vUv = uv;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
 
-    float quardInOut(float t, float b, float c, float d)
+</script>
+
+<script type="x-shader/x-fragment" id="light_fragment">
+
+    uniform sampler2D texture;
+    uniform float alpha;
+
+    varying vec2 vUv;
+
+    void main()
     {
-        t /= d/2.0;
-        if (t < 1.0) return c/2.0*t*t*t*t + b;
-        t -= 2.0;
-        return -c/2.0 * (t*t*t*t - 2.0) + b;
-    }
+        vec4 color = texture2D(texture, vUv);
+        color.w *= alpha;
 
-
-    #define M_PI 3.1415926535897932384626433832795
-
-    void main() {
-
-
-
-        //float alpha = (1.0 - abs(quardInOut(vUv.x, -1.0, 2.0, 1.0))) * .09;
-
-        float alpha = 1.0;
-        float GLOW_VOLUME = 5.0;
-
-        float mark = mod(time * vSpeed + vRandomSeed, 1.0);
-        if(vRandomSeed > .5) mark = 1.0 - mark;
-
-        float d, factor;
-
-        if(vLineType == .0)
-        {
-            //alpha = (1.0 - abs(quardInOut(vUv.x, -1.0, 2.0, 1.0)))*.09;
-
-            d = abs(vUv.y - mark);
-            if(d > .05) d = 1.0 - d;
-            factor = smoothstep(.05, .0, d)*GLOW_VOLUME + 1.0;
-
-            alpha = (1.0 - abs(quardInOut(vUv.x, -1.0, 2.0, 1.0)))*.09 * factor;
-        }
-        else
-        {
-            //alpha = (1.0 - abs(quardInOut(vUv.y, -1.0, 2.0, 1.0))) * .09;
-
-            d = abs(vUv.x - mark);
-            if(d > .025) d = 1.0 - d;
-            factor = smoothstep(.025, .0, d)*GLOW_VOLUME + 1.0;
-            alpha = (1.0 - abs(quardInOut(vUv.y, -1.0, 2.0, 1.0))) * .09 * factor;
-        }
-
-        vec3 color = vec3(1.0, .8, .0);
-
-        gl_FragColor = vec4(color, alpha);
+        gl_FragColor = color;
 
     }
 
