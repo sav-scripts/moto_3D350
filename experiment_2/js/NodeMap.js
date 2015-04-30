@@ -5,7 +5,7 @@
 
     window.NodeMap = function(_scene, _renderer, _camera)
     {
-        var _p = this;
+        var _p = window.NodeMap.instance = this;
 
         _p.settings =
         {
@@ -15,13 +15,15 @@
             "tail length": 50
         };
 
+        _p.isLocking = true;
+
 
         var _sampleDom = $(".city_label")[0];
         $(_sampleDom).css("display", "none");
 
         var _nodeList = [];
 
-        var texture = THREE.ImageUtils.loadTexture("textures/sprites/guide_line_light.png");
+        var texture = THREE.ImageUtils.loadTexture("textures/sprites/city_node.png");
 
         var uniforms =
         {
@@ -65,18 +67,19 @@
         _p.object3D = new THREE.PointCloud(geometry, material);
         _scene.add(_p.object3D);
 
-        var _linkLine = new LinkLine(_p.settings);
+        var _linkLine = _p.linkLine = new LinkLine(_p.settings);
         _scene.add(_linkLine.object3D);
 
 
-        _p.createNode = function(position, englishName, chineseName, isOld)
+        /** public methods **/
+        _p.createNode = function(position, englishName, chineseName, isOld, dayIndex)
         {
             geometry.vertices.push(position.clone());
 
             attributes.nodeType.value.push(isOld? 1: 0);
 
 
-            var nodeLabel = new NodeLabel(_sampleDom, englishName, chineseName, isOld);
+            var nodeLabel = new NodeLabel(_sampleDom, englishName, chineseName, isOld, dayIndex);
 
             _nodeList.push(
                 {
@@ -130,6 +133,16 @@
             {
                 _linkLine.updateSettings(_p.settings);
             }
+        };
+
+        _p.switchLabels = function(isShow, duration)
+        {
+            if(!duration) duration = 0;
+
+            var targetAlpha = isShow? 1: 0;
+
+            TweenMax.to(".city_label_layer", duration, {autoAlpha: targetAlpha});
+            //TweenMax.to()
         };
     };
 
@@ -315,7 +328,7 @@
 
     (function(){
 
-    window.NodeLabel = function(sample, englishName, chineseName)
+    window.NodeLabel = function(sample, englishName, chineseName, isOld, dayIndex)
     {
         var _p = this;
 
@@ -335,6 +348,34 @@
         $basement.width(_p.width - 8);
         $cityName.css("left", "50%").css("margin-left", -_p.width *.5 + 20);
 
+        if(isOld)
+        {
+            $(dom).on("mouseover", function(event)
+            {
+                if(NodeMap.instance.isLocking) return;
+                if($(dom).has(event.relatedTarget).length || event.relatedTarget == dom) return;
+
+                Main.detailMap.show(dayIndex);
+
+            });
+
+            $(dom).on("mouseout", function(event)
+            {
+                if(NodeMap.instance.isLocking) return;
+                if($(dom).has(event.relatedTarget).length || event.relatedTarget == dom) return;
+
+                Main.detailMap.hide();
+
+            });
+
+            $(dom).on("click", function()
+            {
+                if(NodeMap.instance.isLocking) return;
+
+                SceneAnime.instance.toDetailMode(dayIndex);
+
+            });
+        }
 
     };
 

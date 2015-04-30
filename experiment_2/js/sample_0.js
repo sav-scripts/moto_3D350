@@ -5,7 +5,9 @@
 
     "use strict";
 
-    window.Main = {};
+    var _p = window.Main = {};
+
+    _p.isLocking = true;
 
 
     /** settings **/
@@ -26,7 +28,7 @@
 
     var _stats, _mapData = {};
 
-    var _camera, _renderer, _scene, _cameraControl, _lookingCenter = new THREE.Vector3(0, 0, 0);
+    var _camera, _renderer, _scene, _cameraControl;
     var _windowHalfW, _windowHalfH, WIDTH, HEIGHT;
 
     var _screenMouse = {x:0, y:0};
@@ -39,11 +41,13 @@
     var _mapPath = "images/big_blank.png";
 
     var _testPlane;
-    var _baseMap, _pointMap, _guideLine, _nodeMap, _videoMap;
+    var _baseMap, _pointMap, _nodeMap, _sceneAnime;
 
     var _datGUI;
 
     var _showui = false;
+
+
 
     /** init **/
     Main.init = function()
@@ -56,7 +60,7 @@
 
         getWorldMapData(function()
         {
-            ShaderLoader.load(["base_map", "point_cloud_map", "guide_line", "node_map"], build);
+            ShaderLoader.load(["base_map", "point_cloud_map", "guide_line", "node_map", "detail_map"], build);
         });
 
     };
@@ -87,14 +91,66 @@
 
 
 
-
         var obj =
         {
             background: $("body").css("background-color"),
             "show city name": true
         };
 
-        _datGUI = new dat.GUI();
+        _datGUI = new dat.GUI(
+            {
+                load:{
+            "remembered": {
+                "Default": {
+                    "0": {
+                        "dot initialize": 1,
+                        "dot color": "#ffffff",
+                        "dot scale": 9.9,
+                        "dot texture": 1,
+                        "float speed": 0.05,
+                        "float scale": 2,
+                        "inner alpha": 0.5,
+                        "outer alpha": 0
+                    }
+                },
+                "Setting A": {
+                    "0": {
+                        "dot initialize": 0,
+                        "dot color": "#ffffff",
+                        "dot scale": 1.5,
+                        "dot texture": 0,
+                        "float speed": 0.05,
+                        "float scale": 1,
+                        "inner alpha": 0.24260255195829905,
+                        "outer alpha": 0.9080133828389575
+                    }
+                }
+            },
+            "preset": "Default",
+            "closed": true,
+            "folders": {
+                "Basic": {
+                    "preset": "Default",
+                    "closed": true,
+                    "folders": {}
+                },
+                "Point Cloud Map": {
+                    "preset": "Default",
+                    "closed": true,
+                    "folders": {}
+                },
+                "Node Link Line": {
+                    "preset": "Default",
+                    "closed": true,
+                    "folders": {}
+                },
+                "camera": {
+                    "preset": "Default",
+                    "closed": true,
+                    "folders": {}
+                }
+            }
+        }});
 
         if(!_showui) $(_datGUI.domElement).detach();
         setupTrace();
@@ -109,21 +165,23 @@
             $(".city_label_layer").css("display", string);
         });
 
+
         trace("pixel ratio = " + window.devicePixelRatio);
 
+        _p.detailMap = new DetailMap(_mapData);
+        _p.detailMap.setupGUI(_datGUI);
+        _scene.add(_p.detailMap.object3D);
 
-        _guideLine = new GuideLine(_mapData, _scene);
-        _scene.add(_guideLine.object3D);
-        _guideLine.activeLights();
 
 
+        _p.guideLine = new GuideLine(_mapData, _scene);
+        _scene.add(_p.guideLine.object3D);
 
         _baseMap = new BaseMap(_mapData);
         _baseMap.setupGUI(folder);
         _scene.add(_baseMap.object3D);
 
-        //_videoMap = new VideoMap(_mapData);
-        //_scene.add(_videoMap.object3D);
+
 
 
         setupMouseTestPlane();
@@ -132,8 +190,12 @@
         _pointMap.setupGUI(_datGUI);
         _scene.add(_pointMap.object3D);
 
+
         _nodeMap = new NodeMap(_scene, _renderer, _camera);
         _nodeMap.setupGUI(_datGUI);
+
+        setupNodes();
+
 
 
 
@@ -143,52 +205,53 @@
 
 
 
-
-        //var cc = new THREE.OrbitControls(_camera, _renderer.domElement);
-
-        //var controls = new THREE.MouseControls(_camera);
-        //controls.minDistance = -1000;
-
-
         window.addEventListener("resize", onWindowResize, false);
         onWindowResize();
 
-        $(window).on("mousedown", onMousedown);
-        $(window).on("mousemove", onMousemove);
+
+        _cameraControl = new CameraControl(_camera, _scene);
 
 
-
-        //_camera.position.x = CAMERA_SETTING.initPosition.x;
-        //_camera.position.y = CAMERA_SETTING.initPosition.y;
-        //_camera.position.z = CAMERA_SETTING.initPosition.z;
-        //_camera.lookAt(_lookingCenter);
-
-        _camera.position.y = -300;
-        _camera.position.z = 400;
-
-        folder = _datGUI.addFolder("camera");
-        folder.add(_camera.position, "x").listen();
-        folder.add(_camera.position, "y").listen();
-        folder.add(_camera.position, "z").listen();
-        //folder.open();
+        _sceneAnime = new SceneAnime(_pointMap, _cameraControl, _p.guideLine, _baseMap, _nodeMap);
 
 
+        if(Utility.urlParams.skipintro == 1)
+        {
+            introComplete();
+        }
+        else
+        {
+            _sceneAnime.toFirstCut();
+            $(window).on("mousedown", triggerIntro);
+        }
+
+        function triggerIntro(event)
+        {
+            if(event.target != _renderer.domElement) return;
+
+            $(window).unbind("mousedown", triggerIntro);
+            _sceneAnime.playIntro(introComplete);
+        }
 
 
-        //_camera.lookAt(_lookingCenter);
+        function introComplete()
+        {
+            $(window).on("mousedown", onMousedown);
+            $(window).on("mousemove", onMousemove);
 
-        var arc = Math.atan2(-_camera.position.y, _camera.position.z);
+            _p.guideLine.activeLights();
 
-        //console.log("arc = " + arc);
+            _nodeMap.isLocking = false;
+        }
 
-        rotateAroundObjectAxis(_camera, new THREE.Vector3(1,0,0), arc);
-        //_camera.rotateOnAxis(new THREE.Vector3(1,0,0), Math.);
-        //console.log(_camera.rotation.toVector3());
 
-        //new ObjectControl(_scene);
-        _cameraControl = new CameraControl(_camera, _scene, _lookingCenter);
+        //_sceneAnime.playIntro();
 
-        setupNodes();
+        //_datGUI.close();
+
+
+        //console.log(_datGUI.preset);
+        _datGUI.preset = "Setting A";
 
         render();
 
@@ -200,9 +263,9 @@
 
             _cameraControl.updateDistance();
 
-            if(_guideLine)
+            if(_p.guideLine)
             {
-                _guideLine.uniforms.time.value += .002;
+                _p.guideLine.uniforms.time.value += .002;
             }
 
             if(_baseMap)
@@ -236,10 +299,10 @@
     {
         var citys = [];
 
-        addCity(new THREE.Vector3(-64, 77, 0), "BERLIN", "柏林", true);
-        addCity(new THREE.Vector3(7, 67, 0), "BERLIN", "柏林", true);
-        addCity(new THREE.Vector3(74, 36, 0), "BERLIN", "柏林", true);
-        addCity(new THREE.Vector3(235, 53, 0), "BERLIN", "柏林");
+        addCity(new THREE.Vector3(-64, 77, 0), "BERLIN", "柏林", true, 0);
+        addCity(new THREE.Vector3(7, 67, 0), "BERLIN", "柏林", true, 1);
+        addCity(new THREE.Vector3(74, 36, 0), "BERLIN", "柏林", true, 2);
+        addCity(new THREE.Vector3(235, 53, 0), "BERLIN", "柏林", true, 3);
         addCity(new THREE.Vector3(205, 153, 0), "BERLIN", "柏林");
         addCity(new THREE.Vector3(311.5, -3.4, 0), "TAIWAN", "台灣");
         addCity(new THREE.Vector3(197, -5, 0), "BERLIN", "柏林");
@@ -257,10 +320,10 @@
         //new NodeLabel("test", new THREE.Vector3(-20, 77, 0), _camera.project)
 
 
-        function addCity(position, englishName, chineseName, isOld)
+        function addCity(position, englishName, chineseName, isOld, dayIndex)
         {
             citys.push({position: position});
-            _nodeMap.createNode(position, englishName, chineseName, isOld);
+            _nodeMap.createNode(position, englishName, chineseName, isOld, dayIndex);
             //_pointMap.addNode(position);
         }
 
@@ -308,6 +371,7 @@
 
     function onMousemove(event)
     {
+        if(CameraControl.instance.isLocking) return;
         if(event.target != _renderer.domElement) return;
         updateMousePosition(event.clientX, event.clientY);
 
@@ -326,6 +390,7 @@
 
     function onMousedown(event)
     {
+        if(CameraControl.instance.isLocking) return;
         if(event.target != _renderer.domElement) return;
         //_screenMouse = new THREE.Vector2(event.clientX, event.clientY);
         updateMousePosition(event.clientX, event.clientY);
@@ -365,7 +430,7 @@
                 */
 
                 //_lookingCenter = point;
-                TweenMax.to(_lookingCenter, 1, {x:point.x, y:point.y, z:point.z, ease:Power1.easeInOut});
+                TweenMax.to(_cameraControl.lookingCenter, 1, {x:point.x, y:point.y, z:point.z, ease:Power1.easeInOut});
             }
 
         }

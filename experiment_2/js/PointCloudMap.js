@@ -17,7 +17,7 @@
         {
             "dot color": "#ffffff",
             "dot initialize": 1,
-            "dot scale": 10.0,
+            "dot scale": 9.9,
             "dot texture": 0,
             "float speed":.05,
             "float scale":2,
@@ -29,6 +29,14 @@
 
 
         init();
+
+        //tl.add(function(){}, "+=2");
+
+        //tl.to(_p.uniforms.globalProgress, 2, {value:0, ease:Power1.easeIn});
+
+
+
+
         function init()
         {
             _p.dotTextures =
@@ -39,15 +47,20 @@
 
             var uniforms = _p.uniforms =
             {
-                time:           { type: "f", value:0 },
-                floatScale:     { type: "f", value: _p.settings["float scale"] },
-                dotScale:       { type: "f", value: _p.settings["dot scale"] },
-                dotColor:       { type: "v3", value: new THREE.Vector3(1,1,1) },
-                texture:        { type: "t", value: _p.dotTextures[0] },
-                screenMouse:    { type:"v2", value: new THREE.Vector2() },
-                projectedMouse: { type:"v3", value: new THREE.Vector3() },
-                innerAlpha:       { type:"f", value: _p.settings["inner alpha"] },
-                outerAlpha:       { type:"f", value: _p.settings["outer alpha"] }
+                time:               { type: "f", value:0 },
+                floatScale:         { type: "f", value: _p.settings["float scale"] },
+                dotScale:           { type: "f", value: _p.settings["dot scale"] },
+                dotColor:           { type: "v3", value: new THREE.Vector3(1,1,1) },
+                texture:            { type: "t", value: _p.dotTextures[0] },
+                screenMouse:        { type:"v2", value: new THREE.Vector2() },
+                projectedMouse:     { type:"v3", value: new THREE.Vector3() },
+                innerAlpha:         { type:"f", value: _p.settings["inner alpha"] },
+                outerAlpha:         { type:"f", value: _p.settings["outer alpha"] },
+                mapWidth:           { type:"f", value:_mapData.width},
+                mapHeight:          { type:"f", value:_mapData.height},
+                introProgress:      { type:"f", value: 1},
+                globalTurnSpeed:    { type:"f", value: .1},
+                opacity:            { type:"f", value: 1}
             };
 
             var attributes = _p.attributes = {
@@ -120,10 +133,17 @@
                         {
                             var index = geometry.vertices.length;
                             var isEdge = testEdge(w, h);
+                            var isSp = false;
 
                             if(!isEdge)
                             {
-                                if(Math.random() > .3)  continue;
+                                /*
+                                var random = Math.random();
+                                if(random > .35)  continue;
+                                else if(random > .3) isSp = true;
+                                */
+
+                                if(Math.random() > .3) continue;
                             }
 
                             //if(isEdge) continue;
@@ -131,10 +151,18 @@
                             var tx = left + w*gap;
                             var ty = top - h*gap;
 
+                            //var uv = new THREE.Vector2(w*gap/imageWidth, h*gap/imageHeight);
+
                             var vertex = new THREE.Vector3();
                             vertex.x = tx;
                             vertex.y = ty;
                             vertex.z = 0;
+
+                            if(isSp)
+                            {
+                                vertex.z = -500 + parseInt(Math.random()*1000);
+                                vertex.multiplyScalar(1 + Math.random());
+                            }
 
                             geometry.vertices[index] = vertex;
 
@@ -146,9 +174,10 @@
 
 
                             attributes.alpha.value.push(Math.random()*.9 + .1);
-                            attributes.randomSeed.value.push(Math.random() *.5);
+                            attributes.randomSeed.value.push(Math.random());
                             attributes.isEdge.value.push(isEdge? 1: 0);
                             attributes.floatCenter.value.push(new THREE.Vector3(0, 0, -1));
+                            //attributes.uv3.value.push(uv);
 
                         }
                     }
@@ -178,7 +207,7 @@
 
                     var color = new THREE.Color("rgb("+imageData.data[index]+","+imageData.data[index+1]+","+imageData.data[index+2]+")");
 
-                    return (color.getHSL().l < .99)? 1: 0;
+                    return (color.getHSL().l < .89)? 1: 0;
 
                 }
             }
@@ -218,6 +247,9 @@
 
             var obj = _p.settings;
 
+            rootGui.remember(_p.settings);
+
+
             gui.add(obj, "dot initialize", {"linear size":0, "quart size": 1}).onChange(function(v)
             {
                 resetDotSize();
@@ -230,7 +262,8 @@
 
             gui.add(obj, "dot scale", 0.1, 10).listen().onChange(function(v)
             {
-               _p.uniforms.dotScale.value = Math.round(v);
+               //_p.uniforms.dotScale.value = Math.round(v);
+                _p.uniforms.dotScale.value = v;
             });
 
             gui.add(obj, "dot texture", 0, 1).listen().onChange(onDotTextureChange);
@@ -256,7 +289,7 @@
 
             gui.add(obj, "float speed",.002, 1);
 
-            gui.add(obj, "float scale",.0, 100).onChange(function(v)
+            gui.add(obj, "float scale",.0, 100).listen().onChange(function(v)
             {
                 _p.uniforms.floatScale.value = v;
             });
@@ -270,6 +303,10 @@
             {
                 _p.uniforms.outerAlpha.value = v;
             });
+
+
+            //rootGui.remember(_p.settings);
+
 
             function getRGB(c)
             {

@@ -5,24 +5,38 @@
 
     "use strict";
 
-    window.CameraControl = function(_camera, _scene, _lookingTarget)
+    window.CameraControl = function(_camera, _scene)
     {
-        var _p = this;
+        var _p = window.CameraControl.instance = this;
 
-        var cameraInitPosition = new THREE.Vector3(0, -300*2, 300*2);
+        _p.isLocking = false;
 
-        var options = {min:50, max:500*2};
+        _p.lookingCenter = new THREE.Vector3(0, 0, 0);
+
+        var cameraInitPosition = _p.cameraInitPosition = new THREE.Vector3(0, -600, 600);
+
+        var options = _p.settings = {min:50, max:1000};
 
         var objectControl = new ObjectControl(onUpdate);
 
 
-        var cameraObj = {distance:300*2};
+        var values = _p.values = {distance:600};
 
         var moveSpeed = 10;
 
-        objectControl.add("mouseWheel", cameraObj, "distance", -50, options);
-        objectControl.add("w", cameraObj, "distance", -moveSpeed, options);
-        objectControl.add("s", cameraObj, "distance", moveSpeed, options);
+        objectControl.add("mouseWheel", values, "distance", -50, options);
+        /*
+        objectControl.add("w", values, "distance", -moveSpeed, options);
+        objectControl.add("s", values, "distance", moveSpeed, options);
+        */
+
+        objectControl.add("w", _scene.rotation, "x",.1);
+        objectControl.add("s", _scene.rotation, "x", -.1);
+
+        objectControl.add("a", _scene.rotation, "y",.1);
+        objectControl.add("d", _scene.rotation, "y", -.1);
+
+
 
         _p.updateDistance = updateDistance;
 
@@ -32,58 +46,17 @@
         {
             _camera.position.copy(cameraInitPosition);
             _camera.up = new THREE.Vector3(0,0,1);
-            _camera.lookAt(_lookingTarget);
+            _camera.lookAt(_p.lookingCenter);
 
-            var vec = _camera.position.clone().sub(_lookingTarget).normalize();
+            var vec = _camera.position.clone().sub(_p.lookingCenter).normalize();
 
             //console.log("vec = " + vec.x + ", " + vec.y + ", " + vec.z);
 
-            vec = vec.multiplyScalar(cameraObj.distance);
+            vec = vec.multiplyScalar(values.distance);
 
-            vec = vec.add(_lookingTarget);
+            vec = vec.add(_p.lookingCenter);
 
             _camera.position.copy(vec);
-
-            /*
-            _camera.position.copy(vec);
-            _camera.position.normalize();
-            _camera.position.multiplyScalar(cameraObj.distance);
-            */
-
-            //con
-
-            /*
-            return;
-
-            var tz = cameraObj.zAspect * cameraObj.distance;
-            var ty = cameraObj.yAspect * cameraObj.distance;
-            var tx = 0;
-
-
-            var dx = tx - _lookingTarget.x;
-            var dy = ty - _lookingTarget.y;
-
-            var ddistance = new THREE.Vector3(dx, dy, tz).length();
-
-            //console.log("ddistance = " + ddistance);
-
-            if(ddistance > cameraObj.distance)
-            {
-
-
-                //var n = Math.sqrt(Math.abs(1-dx*dx));
-                var n = Math.sqrt(ty*ty / (dx*dx+dy*dy));
-
-                //console.log("n = " + n);
-
-                tx = _lookingTarget.x + dx * n;
-                ty = _lookingTarget.y + dy * n;
-            }
-
-            _camera.position.x = tx;
-            _camera.position.z = tz;
-            _camera.position.y = ty;
-            */
 
         }
 
@@ -94,10 +67,10 @@
         objectControl.add("d", _camera.position, "x", -moveSpeed);
         */
 
-        //objectControl.add("w", _lookingTarget, "y", moveSpeed);
-        //objectControl.add("s", _lookingTarget, "y", -moveSpeed);
-        //objectControl.add("a", _lookingTarget, "x", moveSpeed);
-        //objectControl.add("d", _lookingTarget, "x", -moveSpeed);
+        //objectControl.add("w", _p.lookingCenter, "y", moveSpeed);
+        //objectControl.add("s", _p.lookingCenter, "y", -moveSpeed);
+        //objectControl.add("a", _p.lookingCenter, "x", moveSpeed);
+        //objectControl.add("d", _p.lookingCenter, "x", -moveSpeed);
 
         //objectControl.add("w", _scene.position, "z", moveSpeed);
         //objectControl.add("s", _scene.position, "z", -moveSpeed);

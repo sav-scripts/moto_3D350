@@ -9,9 +9,10 @@
 
         var _lights = [];
         var _numLights = 10;
+        var _isLightActived = false;
 
         var _numRows = 0, _numCols = 0;
-        var LINE_GAP = 40, THICKNESS = 2, HALF_THICKNESS = THICKNESS*.5;
+        var LINE_GAP = 40;
 
         var width = Math.ceil(_mapData.width/LINE_GAP) * LINE_GAP * 2;
         var height = Math.ceil(_mapData.height/LINE_GAP) * LINE_GAP * 2;
@@ -21,11 +22,15 @@
         buildLines();
         buildLights();
 
+        /** public methods **/
         _p.activeLights = function()
         {
+            if(_isLightActived) return;
+            _isLightActived = true;
+
+            activeOne();
 
             var tl = new TimelineMax({repeat:-1});
-            activeOne();
             tl.add(activeOne,1);
 
             //activeOne();
@@ -74,10 +79,6 @@
 
                     }
 
-                    //console.log("col = " + col + ", row = " + row);
-
-                    //console.log("duration = " + duration);
-
                     var tl = new TimelineMax();
                     tl.set(light.uniforms.progress, {value:0});
                     tl.set(light.object3D.position, {x: startP.x, y:startP.y});
@@ -87,7 +88,8 @@
 
                     tl.add(function()
                     {
-                       _lights.push(light);
+                        _lights.push(light);
+                        _scene.remove(light.object3D);
                     });
 
                     _scene.add(light.object3D);
@@ -96,6 +98,7 @@
         };
 
 
+        /** private methods **/
         function buildLines()
         {
             var uniforms = _p.uniforms =
@@ -124,16 +127,12 @@
                 depthTest: false
             });
 
-            //var material = new THREE.LineBasicMaterial({opacity:.06, transparent: true});
-
 
             var geometry = _p.geometry = new THREE.Geometry();
             var x, y;
-            var fIndex, quadIndex = 0;
 
             for(x=LINE_GAP;x<width;x+=LINE_GAP)
             {
-               // addQuad(0, startX+x-HALF_THICKNESS, startY + height, startX+x+HALF_THICKNESS, startY);
                 addLine(0, x, height, x, 0);
                 _numCols ++;
 
@@ -142,14 +141,11 @@
 
             for(y=LINE_GAP;y<height;y+=LINE_GAP)
             {
-                //addQuad(1, startX, startY+y+HALF_THICKNESS, startX + width, startY+y-HALF_THICKNESS);
                 addLine(1, 0, y, width, y);
                 _numRows ++;
             }
 
             _p.object3D = new THREE.Line( geometry, material, THREE.LinePieces );
-            //_p.object3D = new THREE.Mesh( geometry, material );
-            //_p.object3D.position.z = -5;
 
 
 
@@ -165,69 +161,26 @@
                 attributes.positionProgress.value.push(positionProgress, positionProgress);
 
             }
-
-            function addQuad(lineType, left, top, right, bottom)
-            {
-                fIndex = quadIndex*4;
-
-                geometry.vertices.push
-                (
-                    new THREE.Vector3(left, bottom, 0),
-                    new THREE.Vector3(right, bottom, 0),
-                    new THREE.Vector3(left, top, 0),
-                    new THREE.Vector3(right, top, 0)
-                );
-
-                geometry.faces.push(
-                    new THREE.Face3(fIndex+3, fIndex+2, fIndex),
-                    new THREE.Face3(fIndex+1, fIndex+3, fIndex)
-                );
-
-                geometry.faceVertexUvs[0].push(
-                    [
-                        new THREE.Vector2(1,0),
-                        new THREE.Vector2(0,0),
-                        new THREE.Vector2(0,1)
-                    ],
-                    [
-                        new THREE.Vector2(1,1),
-                        new THREE.Vector2(1,0),
-                        new THREE.Vector2(0,1)
-                    ]
-                );
-
-                var randomSeed = Math.random();
-                var speed = Math.random() + .5;
-
-                attributes.lineType.value.push(lineType, lineType, lineType, lineType);
-                attributes.randomSeed.value.push(randomSeed, randomSeed, randomSeed, randomSeed);
-                attributes.speed.value.push(speed, speed, speed, speed);
-
-                quadIndex++;
-
-            }
         }
 
         function buildLights()
         {
             var lightTexture = THREE.ImageUtils.loadTexture( "textures/sprites/guide_line_light.png" );
 
-
             for(var i=0;i<_numLights;i++)
             {
-                _lights.push(new GuideLineLight(lightTexture, width, height));
+                var light = new GuideLineLight(lightTexture, width, height);
+                _lights.push(light);
             }
         }
 
     };
 
-    window.GuideLine.prototype.constructor = window.GuideLine;
-
 }());
 
 (function(){
 
-    window.GuideLineLight = function(texture, gridWidth, gridHeight)
+    window.GuideLineLight = function(texture)
     {
         var _p = this;
 
