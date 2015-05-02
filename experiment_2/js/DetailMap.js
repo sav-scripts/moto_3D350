@@ -9,8 +9,9 @@
 
         _p.settings =
         {
-            "opacity":.8,
-            "mask power": .7
+            "opacity":.9,
+            "mask power": .0,
+            "scale": 3
         };
 
         var _isHiding = true;
@@ -18,33 +19,41 @@
 
         var video = _p.video = document.getElementById( 'video' );
 
-        var texture = new THREE.VideoTexture( video );
-        texture.minFilter = THREE.LinearFilter;
-        texture.magFilter = THREE.LinearFilter;
-        texture.format = THREE.RGBFormat;
+        var videoTexture = new THREE.VideoTexture( video );
+        videoTexture.minFilter = THREE.LinearFilter;
+        videoTexture.magFilter = THREE.LinearFilter;
+        videoTexture.format = THREE.RGBFormat;
 
         _p.imageTextures =
         [
-            texture,
-            THREE.ImageUtils.loadTexture( "images/image_day_1.jpg" ),
-            THREE.ImageUtils.loadTexture( "images/image_day_5.jpg" ),
+            videoTexture,
+            THREE.ImageUtils.loadTexture( "images/image_test.png" ),
+            THREE.ImageUtils.loadTexture( "images/image_day_7.jpg" ),
             THREE.ImageUtils.loadTexture( "images/image_day_3.jpg" ),
-            THREE.ImageUtils.loadTexture( "images/image_day_4.jpg" ),
+            THREE.ImageUtils.loadTexture( "images/image_day_6.jpg" ),
             THREE.ImageUtils.loadTexture( "images/image_day_2.jpg" ),
-            THREE.ImageUtils.loadTexture( "images/image_day_6.jpg" )
+            THREE.ImageUtils.loadTexture( "images/image_day_4.jpg" )
         ];
 
+        for(var i=0;i<_p.imageTextures.length;i++)
+        {
+            var texture = _p.imageTextures[i];
+            texture.minFilter = THREE.NearestFilter;
+        }
 
 
-        var geometry = new THREE.PlaneBufferGeometry(_mapData.width, _mapData.height, 1, 1);
+        var geometry = new THREE.PlaneBufferGeometry(Main.videoWidth, Main.videoHeight, 1, 1);
 
         var uniforms = _p.uniforms =
         {
             texture:      { type: "t", value: _p.imageTextures[0]},
-            maskTexture:  { type: "t", value: _mapData.texture},
+            // textureSize:    {type:"v2", value:new THREE.Vector2(Main.videoWidth*_p.settings.scale, Main.videoHeight*_p.settings.scale)},
+            // maskTexture:  { type: "t", value: _mapData.texture},
+            // maskSize:       {type:"v2", value:new THREE.Vector2(_mapData.width, _mapData.height)},
             opacity:      { type: "f", value: _p.settings.opacity},
-            maskPower:    { type: "f", value: _p.settings["mask power"]},
-            softPower:    { type: "f", value: 1}
+            // maskPower:    { type: "f", value: _p.settings["mask power"]},
+            softPower:    { type: "f", value: 1},
+            scale:          {type:"f", value:_p.settings.scale}
         };
 
         var attributes = _p.attributes =
@@ -69,6 +78,17 @@
         _p.object3D.visible = false;
 
         /** public methods **/
+        _p.resize = function(scale, duration)
+        {
+            /*
+            _p.settings.scale = scale;
+            geometry.width = Main.videoWidth * scale;
+            geometry.height = Main.videoHeight * scale;
+
+            geometry.verticesNeedUpdate = true;
+            */
+        };
+
         _p.setupGUI = function(rootGui)
         {
             var gui = rootGui.addFolder("Detail Map");

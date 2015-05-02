@@ -60,7 +60,8 @@
                 mapHeight:          { type:"f", value:_mapData.height},
                 introProgress:      { type:"f", value: 1},
                 globalTurnSpeed:    { type:"f", value: .1},
-                opacity:            { type:"f", value: 1}
+                opacity:            { type:"f", value: 1},
+                spreadProgress:     { type:"f", value: 1}
             };
 
             var attributes = _p.attributes = {

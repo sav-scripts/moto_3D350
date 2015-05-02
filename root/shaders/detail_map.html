@@ -1,0 +1,78 @@
+<script type="x-shader/x-vertex" id="vertex">
+
+    uniform float scale;
+
+    varying vec2 vUv;
+
+    void main()
+    {
+        vUv = uv;
+
+        vec3 newPosition = position * scale;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+    }
+
+</script>
+
+<script type="x-shader/x-fragment" id="fragment">
+
+    uniform sampler2D texture;
+    //uniform sampler2D maskTexture;
+    //uniform float maskPower;
+    uniform float softPower;
+    uniform float opacity;
+
+    //uniform vec2 textureSize;
+    //uniform vec2 maskSize;
+
+    varying vec2 vUv;
+
+    void main()
+    {
+        vec4 color = texture2D(texture, vUv);
+
+
+        /*
+
+            float finalAlpha = opacity;
+
+            vec2 maskUv = vUv;
+            maskUv.x = (maskUv.x * textureSize.x - (textureSize.x - maskSize.x)*.5) / maskSize.x;
+            maskUv.y = (maskUv.y * textureSize.y - (textureSize.y - maskSize.y)*.5) / maskSize.y;
+            //maskUv *= textureSize / maskSize;
+
+             vec4 maskColor = texture2D(maskTexture, maskUv);
+             //finalAlpha *= ((1.0 - maskColor.x) * .5 + .25);
+             finalAlpha = finalAlpha * (1.0 - maskColor.x*maskPower);
+
+
+
+
+            float alpha1 = 1.0;
+
+            if(vUv.x <= .25) alpha1 = smoothstep(.0, .25, vUv.x);
+            if(vUv.x >= .75) alpha1 = smoothstep(1.0, .75, vUv.x);
+
+            float alpha2 = 1.0;
+
+            if(vUv.y <= .25) alpha2 = smoothstep(.0, .25, vUv.y);
+            if(vUv.y >= .75) alpha2 = smoothstep(1.0, .75, vUv.y);
+
+            //color.w = finalAlpha * alpha1 * alpha2;
+           // color.w = finalAlpha - (1.0 - alpha1*alpha2)*softPower;
+
+         */
+
+
+
+        float fade = vUv.y * softPower;
+
+        color.w = opacity * (1.0-fade);
+
+
+        gl_FragColor = color;
+
+    }
+
+</script>

@@ -1,0 +1,52 @@
+<script id="vertex" type="x-shader/x-vertex">
+
+    varying vec2 vUv;
+    attribute vec2 uv3;
+    uniform vec2 screenMouse;
+    uniform vec3 projectedMouse;
+
+    void main()
+    {
+        vUv = uv;
+
+        vec4 outPosition = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        // outPosition.z = 0.0;
+        //outPosition.x *= 2.0;
+        //if(outPosition.x == 1.0) outPosition.x = 0.0;
+
+        //outPosition.x += 500.0;
+        gl_Position = outPosition;
+    }
+
+
+</script>
+
+<script id="fragment" type="x-shader/x-fragment">
+
+    uniform sampler2D texture;
+    uniform vec2 screenMouse;
+    uniform float alpha;
+
+    varying vec2 vUv;
+
+    #define PI 3.14159265358979
+    #define HALF_PI (PI/2.)
+
+    void main()
+    {
+
+        vec4 outColor;
+
+        outColor = texture2D(texture, vUv);
+
+        if(outColor.x < .5)
+        {
+            //gl_FragColor = vec4(1.0, 1.0, 1.0, (1.0 - outColor.r)*.1);
+            gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);
+
+        }
+        else discard;
+
+    }
+
+</script>

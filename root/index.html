@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>sample 0</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js"></script>
+
+    <script src="js/lib/MathExtend.js"></script>
+
+    <script src="js/lib/hammer.min.js"></script>
+
+    <script src="js/lib/dat.gui.min.js"></script>
+    <script src="js/lib/jquery.mousewheel.min.js"></script>
+    <script src="js/lib/OrbitControls.js"></script>
+
+    <script src="js/lib/Utility.0.0.9.js"></script>
+
+    <script src="js/lib/stats.min.js"></script>
+    <!--script src="js/DefaultCameraControl.js"></script-->
+    <script src="js/CameraControl.js"></script>
+    <script src="js/ShaderLoader.js"></script>
+    <script src="js/QuadCloudMap.js"></script>
+    <script src="js/PointCloudMap.js"></script>
+    <script src="js/BaseMap.js"></script>
+    <script src="js/GuideLine.js"></script>
+    <script src="js/NodeMap.js"></script>
+    <script src="js/MyThreeHelper.js"></script>
+    <script src="js/DetailMap.js"></script>
+    <script src="js/SceneAnime.js"></script>
+    <script src="js/VideoPlayer.js"></script>
+    <script src="js/CityLabels.js"></script>
+    <script src="js/UI.js"></script>
+    <script src="js/Main.js"></script>
+    <script src="js/city_data.js"></script>
+
+    <script src="api/fakedata.js"></script>
+
+
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+
+
+
+    <!-- shaders -->
+
+
+</head>
+<body onload="Main.init();">
+
+    <div class="logo"></div>
+    <div class="menu">
+        <div class="menu_icon"></div>
+        <div class="menu_btn_fb"></div>
+        <div class="menu_btn_rule"></div>
+        <div class="menu_btn_product"></div>
+    </div>
+
+    <div class="city_label_layer">
+
+        <!--div class="city_label" style="top:200px; left: 200px; display:none; ">
+            <div class="left_border"></div>
+            <div class="right_border"></div>
+            <div class="basement"></div>
+            <div class="city_name"><p class="name_en">BERLIN</p><p class="name_ch">柏林</p></div>
+        </div-->
+
+    </div>
+
+    <video id="video" style="display:none; position:absolute; z-index:1000; ">
+        <source src="textures/film.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
+    </video>
+
+    <div class="timeline_layer">
+        <div class="baseline"></div>
+        <div class="progress_line"></div>
+        <div class="progress_line_head"></div>
+        <div class="node_part"></div>
+        <!--
+        <div class="timeline_node_past"></div>
+        <div class="timeline_node_now"></div>
+        <div class="timeline_node_future"></div>
+        -->
+    </div>
+
+
+</body>
+</html>

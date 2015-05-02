@@ -1,0 +1,52 @@
+<script type="x-shader/x-vertex" id="vertex">
+
+    varying vec2 vUv;
+
+    void main()
+    {
+        vUv = uv;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+
+</script>
+
+<script type="x-shader/x-fragment" id="fragment">
+
+    uniform sampler2D texture;
+    uniform sampler2D maskTexture;
+    uniform float alpha;
+
+    varying vec2 vUv;
+
+    void main()
+    {
+
+        vec4 color = texture2D(texture, vUv);
+
+
+        color.w = alpha;
+
+         vec4 maskColor = texture2D(maskTexture, vUv);
+         color.w *= (1.0 - maskColor.x) * .5 + .25;
+
+
+
+        float alpha1 = 1.0;
+
+        if(vUv.x <= .25) alpha1 = smoothstep(.0, .25, vUv.x);
+        if(vUv.x >= .75) alpha1 = smoothstep(1.0, .75, vUv.x);
+
+        float alpha2 = 1.0;
+
+        if(vUv.y <= .25) alpha2 = smoothstep(.0, .25, vUv.y);
+        if(vUv.y >= .75) alpha2 = smoothstep(1.0, .75, vUv.y);
+
+        color.w *= alpha1 * alpha2;
+
+
+        gl_FragColor = color;
+
+    }
+
+</script>

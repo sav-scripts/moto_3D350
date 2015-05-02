@@ -30,7 +30,8 @@
             size:       {type:"f", value:30},
             texture:    {type:"t", value:texture},
             normalColor:    {type:"v4", value:new THREE.Vector4(1,0,0,1)},
-            oldColor:    {type:"v4", value:new THREE.Vector4(1,0,0,.35)}
+            oldColor:    {type:"v4", value:new THREE.Vector4(1,0,0,.35)},
+            opacity:    {type:"f", value:1}
         };
 
         var attributes =
@@ -163,7 +164,8 @@
             arcLength:  { type: "f", value: 0 },
             headAlpha:  { type:"f", value: settings["head alpha"] },
             tailAlpha:  { type:"f", value: settings["tail alpha"] },
-            tailLength:  { type:"f", value: settings["tail length"] }
+            tailLength:  { type:"f", value: settings["tail length"] },
+            opacity:    {type:"f", value:1}
         };
 
         var attributes = _p.attributes =

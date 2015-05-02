@@ -1,0 +1,78 @@
+<script type="x-shader/x-vertex" id="line_vertex">
+
+    attribute float progress;
+    attribute float positionProgress;
+
+    varying float vProgress;
+    varying float vPositionProgress;
+
+    void main()
+    {
+        vProgress = progress;
+        vPositionProgress = positionProgress;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+
+</script>
+
+<script type="x-shader/x-fragment" id="line_fragment">
+
+    uniform vec3 color;
+    uniform float opacity;
+
+    varying float vProgress;
+    varying float vPositionProgress;
+
+    const float lineAlpha = .06;
+
+    void main()
+    {
+        float alpha1 = 1.0;
+
+        if(vProgress <= .25) alpha1 = smoothstep(.0, .25, vProgress);
+        if(vProgress >= .75) alpha1 = smoothstep(1.0, .75, vProgress);
+
+        float alpha2 = 1.0;
+
+        if(vPositionProgress <= .25) alpha2 = smoothstep(.0, .25, vPositionProgress);
+        if(vPositionProgress >= .75) alpha2 = smoothstep(1.0, .75, vPositionProgress);
+
+
+        gl_FragColor = vec4(color, opacity*lineAlpha*alpha1*alpha2);
+
+    }
+
+</script>
+
+<script type="x-shader/x-vertex" id="light_vertex">
+
+    uniform float progress;
+
+    varying vec2 vUv;
+
+    void main()
+    {
+        vUv = uv;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+
+</script>
+
+<script type="x-shader/x-fragment" id="light_fragment">
+
+    uniform sampler2D texture;
+    uniform float alpha;
+
+    varying vec2 vUv;
+
+    void main()
+    {
+        vec4 color = texture2D(texture, vUv);
+        color.w *= alpha;
+
+        gl_FragColor = color;
+
+    }
+
+</script>

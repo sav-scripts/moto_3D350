@@ -5,7 +5,7 @@
 
     window.GuideLine = function(_mapData, _scene)
     {
-        var _p = this;
+        var _p = window.GuideLine.instance = this;
 
         var _lights = [];
         var _numLights = 10;
@@ -19,6 +19,10 @@
 
         var startX = -width*.5, startY = -height*.5;
 
+
+        var _tlLightLoop = new TimelineMax({repeat:-1, paused:true});
+        _tlLightLoop.add(activeOneLight,1);
+
         buildLines();
         buildLights();
 
@@ -28,83 +32,88 @@
             if(_isLightActived) return;
             _isLightActived = true;
 
-            activeOne();
+            _tlLightLoop.resume();
+        };
 
-            var tl = new TimelineMax({repeat:-1});
-            tl.add(activeOne,1);
+        _p.deactiveLights = function()
+        {
+            if(_isLightActived == false) return;
+            _isLightActived = false;
 
-            //activeOne();
-
-            function activeOne()
-            {
-
-                if(_lights.length)
-                {
-                    var light = _lights.pop();
-                    var isVertical = Math.random() > .5;
-
-                    var col, row;
-                    var speed = 300, duration;
-
-                    var startP, endP;
-                    var flip = Math.random() > .5? 1: -1;
-
-                    if(isVertical)
-                    {
-                        light.setDirection(true);
-
-                        col = parseInt(Math.random()*_numCols*.5 + _numCols*.25) + 1;
-                        row = 1;
-
-                        startP = new THREE.Vector2(startX + col * LINE_GAP, startY + row * LINE_GAP);
-                        startP.y *= flip;
-                        endP = startP.clone();
-                        endP.y = endP.y * -1;
-
-                        duration = height / speed;
-                    }
-                    else
-                    {
-                        light.setDirection(false);
-
-                        row = parseInt(Math.random()*_numRows*.5 + _numRows*.25) + 1;
-                        col = 1;
-
-                        startP = new THREE.Vector2(startX + col * LINE_GAP, startY + row * LINE_GAP);
-                        startP.x *= flip;
-                        endP = startP.clone();
-                        endP.x = endP.x * -1;
-
-                        duration = width / speed;
-
-                    }
-
-                    var tl = new TimelineMax();
-                    tl.set(light.uniforms.progress, {value:0});
-                    tl.set(light.object3D.position, {x: startP.x, y:startP.y});
-
-                    tl.to(light.uniforms.progress, duration, {value: 1, ease:Linear.easeNone}, 0);
-                    tl.to(light.object3D.position, duration, {x: endP.x, y:endP.y, ease:Linear.easeNone}, 0);
-
-                    tl.add(function()
-                    {
-                        _lights.push(light);
-                        _scene.remove(light.object3D);
-                    });
-
-                    _scene.add(light.object3D);
-                }
-            }
+            _tlLightLoop.pause();
         };
 
 
         /** private methods **/
+        function activeOneLight()
+        {
+
+            if(_lights.length)
+            {
+                var light = _lights.pop();
+                var isVertical = Math.random() > .5;
+
+                var col, row;
+                var speed = 300, duration;
+
+                var startP, endP;
+                var flip = Math.random() > .5? 1: -1;
+
+                if(isVertical)
+                {
+                    light.setDirection(true);
+
+                    col = parseInt(Math.random()*_numCols*.5 + _numCols*.25) + 1;
+                    row = 1;
+
+                    startP = new THREE.Vector2(startX + col * LINE_GAP, startY + row * LINE_GAP);
+                    startP.y *= flip;
+                    endP = startP.clone();
+                    endP.y = endP.y * -1;
+
+                    duration = height / speed;
+                }
+                else
+                {
+                    light.setDirection(false);
+
+                    row = parseInt(Math.random()*_numRows*.5 + _numRows*.25) + 1;
+                    col = 1;
+
+                    startP = new THREE.Vector2(startX + col * LINE_GAP, startY + row * LINE_GAP);
+                    startP.x *= flip;
+                    endP = startP.clone();
+                    endP.x = endP.x * -1;
+
+                    duration = width / speed;
+
+                }
+
+                var tl = new TimelineMax();
+                tl.set(light.uniforms.progress, {value:0});
+                tl.set(light.object3D.position, {x: startP.x, y:startP.y});
+
+                tl.to(light.uniforms.progress, duration, {value: 1, ease:Linear.easeNone}, 0);
+                tl.to(light.object3D.position, duration, {x: endP.x, y:endP.y, ease:Linear.easeNone}, 0);
+
+                tl.add(function()
+                {
+                    _lights.push(light);
+                    _scene.remove(light.object3D);
+                });
+
+                _scene.add(light.object3D);
+            }
+        }
+
+
         function buildLines()
         {
             var uniforms = _p.uniforms =
             {
-                time:   { type:"f", value:0},
-                color:  { type: "v3", value: new THREE.Vector3(1, 1, 1) }
+                time:    { type:"f", value:0},
+                color:   { type: "v3", value: new THREE.Vector3(1, 1, 1) },
+                opacity: { type:"f", value:1}
             };
 
             var attributes = _p.attributes =

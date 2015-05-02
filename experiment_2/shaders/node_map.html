@@ -29,18 +29,17 @@
     uniform sampler2D texture;
     uniform vec4 normalColor;
     uniform vec4 oldColor;
+    uniform float opacity;
 
     varying float vNodeType;
 
     void main()
     {
-        float alpha;
-
         vec4 color = texture2D(texture, gl_PointCoord);
 
         vec4 vColor = vNodeType > .5? oldColor: normalColor;
 
-        gl_FragColor = vec4(vColor.xyz, color.w * vColor.w);
+        gl_FragColor = vec4(vColor.xyz, color.w * vColor.w * opacity);
 
     }
 
@@ -88,6 +87,7 @@
     uniform float headAlpha;
     uniform float tailAlpha;
     uniform float tailLength;
+    uniform float opacity;
 
     varying float vRandomSeed;
     varying float vProgress;
@@ -133,10 +133,7 @@
         if(vIsOld > .5) alpha *= .5;
 
 
-        vec4 color = vec4(1.0, 1.0, 1.0, alpha);
-
-
-        gl_FragColor = color;
+        gl_FragColor = vec4(1.0, 1.0, 1.0, alpha * opacity);
 
     }
 

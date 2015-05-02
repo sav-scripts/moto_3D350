@@ -18,14 +18,15 @@
 <script type="x-shader/x-fragment" id="line_fragment">
 
     uniform vec3 color;
+    uniform float opacity;
 
     varying float vProgress;
     varying float vPositionProgress;
 
+    const float lineAlpha = .06;
+
     void main()
     {
-        float alpha0 = .06;
-
         float alpha1 = 1.0;
 
         if(vProgress <= .25) alpha1 = smoothstep(.0, .25, vProgress);
@@ -37,7 +38,7 @@
         if(vPositionProgress >= .75) alpha2 = smoothstep(1.0, .75, vPositionProgress);
 
 
-        gl_FragColor = vec4(color, alpha0*alpha1*alpha2);
+        gl_FragColor = vec4(color, opacity*lineAlpha*alpha1*alpha2);
 
     }
 

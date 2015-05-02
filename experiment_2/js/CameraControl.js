@@ -9,40 +9,63 @@
     {
         var _p = window.CameraControl.instance = this;
 
-        _p.isLocking = false;
+        //_p.isLocking = false;
+
+        var _isLocking = false;
+        var _objectControl = new ObjectControl();
 
         _p.lookingCenter = new THREE.Vector3(0, 0, 0);
 
         var cameraInitPosition = _p.cameraInitPosition = new THREE.Vector3(0, -600, 600);
 
-        var options = _p.settings = {min:50, max:1000};
+        var options = _p.settings = {min:50, max:1400};
 
-        var objectControl = new ObjectControl(onUpdate);
 
 
         var values = _p.values = {distance:600};
 
-        var moveSpeed = 10;
 
-        objectControl.add("mouseWheel", values, "distance", -50, options);
+        _objectControl.add("mouseWheel", values, "distance", -50, options);
         /*
-        objectControl.add("w", values, "distance", -moveSpeed, options);
-        objectControl.add("s", values, "distance", moveSpeed, options);
+        _objectControl.add("w", values, "distance", -moveSpeed, options);
+        _objectControl.add("s", values, "distance", moveSpeed, options);
         */
 
-        objectControl.add("w", _scene.rotation, "x",.1);
-        objectControl.add("s", _scene.rotation, "x", -.1);
+        _objectControl.add("w", _scene.rotation, "x",.1);
+        _objectControl.add("s", _scene.rotation, "x", -.1);
 
-        objectControl.add("a", _scene.rotation, "y",.1);
-        objectControl.add("d", _scene.rotation, "y", -.1);
+        _objectControl.add("a", _scene.rotation, "y",.1);
+        _objectControl.add("d", _scene.rotation, "y", -.1);
 
 
+        /*
+         var moveSpeed = 10;
 
-        _p.updateDistance = updateDistance;
+         _objectControl.add("w", _camera.position, "y", moveSpeed);
+         _objectControl.add("s", _camera.position, "y", -moveSpeed);
+         _objectControl.add("a", _camera.position, "x", moveSpeed);
+         _objectControl.add("d", _camera.position, "x", -moveSpeed);
 
-        //updateDistance();
+        //_objectControl.add("w", _p.lookingCenter, "y", moveSpeed);
+        //_objectControl.add("s", _p.lookingCenter, "y", -moveSpeed);
+        //_objectControl.add("a", _p.lookingCenter, "x", moveSpeed);
+        //_objectControl.add("d", _p.lookingCenter, "x", -moveSpeed);
 
-        function updateDistance()
+        //_objectControl.add("w", _scene.position, "z", moveSpeed);
+        //_objectControl.add("s", _scene.position, "z", -moveSpeed);
+        //_objectControl.add("a", _scene.position, "x", moveSpeed);
+        //_objectControl.add("d", _scene.position, "x", -moveSpeed);
+
+         */
+
+        _objectControl.add("up", cameraInitPosition, "z", 10);
+        _objectControl.add("down", cameraInitPosition, "z", -10);
+        _objectControl.add("left", cameraInitPosition, "x", -10);
+        _objectControl.add("right", cameraInitPosition, "x", 10);
+
+
+        /** public methods **/
+        _p.updateDistance = function()
         {
             _camera.position.copy(cameraInitPosition);
             _camera.up = new THREE.Vector3(0,0,1);
@@ -58,42 +81,36 @@
 
             _camera.position.copy(vec);
 
-        }
+        };
 
-        /*
-        objectControl.add("w", _camera.position, "y", moveSpeed);
-        objectControl.add("s", _camera.position, "y", -moveSpeed);
-        objectControl.add("a", _camera.position, "x", moveSpeed);
-        objectControl.add("d", _camera.position, "x", -moveSpeed);
-        */
-
-        //objectControl.add("w", _p.lookingCenter, "y", moveSpeed);
-        //objectControl.add("s", _p.lookingCenter, "y", -moveSpeed);
-        //objectControl.add("a", _p.lookingCenter, "x", moveSpeed);
-        //objectControl.add("d", _p.lookingCenter, "x", -moveSpeed);
-
-        //objectControl.add("w", _scene.position, "z", moveSpeed);
-        //objectControl.add("s", _scene.position, "z", -moveSpeed);
-        //objectControl.add("a", _scene.position, "x", moveSpeed);
-        //objectControl.add("d", _scene.position, "x", -moveSpeed);
-
-        objectControl.add("up", cameraInitPosition, "z", 10);
-        objectControl.add("down", cameraInitPosition, "z", -10);
-        objectControl.add("left", cameraInitPosition, "x", -10);
-        objectControl.add("right", cameraInitPosition, "x", 10);
-
-        function onUpdate()
+        _p.lock = function()
         {
+            _isLocking = true;
+            _objectControl.isLocking = true;
+        };
 
-        }
+        _p.unlock = function()
+        {
+            _isLocking = false;
+            _objectControl.isLocking = false;
+        };
+
+        _p.updateValues = function()
+        {
+            _objectControl.updateValues();
+        };
+
+
 
     };
     window.CameraControl.prototype.constructor = window.CameraControl;
 
 
-    window.ObjectControl = function(_onUpdate)
+    window.ObjectControl = function()
     {
         var _p = this;
+
+        _p.isLocking = false;
 
         var _keyDowns = {};
         var _tlKeyboardUpdate = null;
@@ -156,8 +173,69 @@
             });
         }
 
+        /** public methods **/
+        _p.add = function(keyName, target, valueName, delta, options)
+        {
+            var string;
+
+            if(keyName == "mouseWheel")
+            {
+                string = keyName;
+            }
+            else
+            {
+                var keyCode = window.KeyCodeDic[keyName];
+
+                if(!keyCode)
+                {
+                    console.error("keyName: ["+keyName+"] code not remembed");
+                    return;
+                }
+
+                string = "key_" + keyCode;
+            }
+
+            var tweenObj = target._cc_tweenObj;
+            if(!tweenObj) tweenObj = target._cc_tweenObj = {};
+
+            tweenObj[valueName] = target[valueName];
+
+            var array = _registedDic[string];
+            if(!array) array = _registedDic[string] = [];
+
+            array.push(
+                {
+                    keyName: keyName,
+                    target: target,
+                    valueName: valueName,
+                    tweenObj: tweenObj,
+                    delta: delta,
+                    options: options? options: {}
+                });
+        };
+
+        _p.updateValues = function()
+        {
+            var eventName, array, i, obj;
+
+            for(eventName in _registedDic)
+            {
+                array = _registedDic[eventName];
+                for(i=0;i<array.length;i++)
+                {
+                    obj = array[i];
+
+                    obj.tweenObj[obj.valueName] = obj.target[obj.valueName];
+                }
+            }
+        };
+
+
+        /** private methods **/
         function handleEvent(eventName, factor)
         {
+            if(_p.isLocking) return;
+
             var array, obj, params, i;
             if(!factor) factor = 1;
             array = _registedDic[eventName];
@@ -217,46 +295,6 @@
 
             },.033);
 
-        }
-
-        _p.add = function(keyName, target, valueName, delta, options)
-        {
-            var string;
-
-            if(keyName == "mouseWheel")
-            {
-                string = keyName;
-            }
-            else
-            {
-                var keyCode = window.KeyCodeDic[keyName];
-
-                if(!keyCode)
-                {
-                    console.error("keyName: ["+keyName+"] code not remembed");
-                    return;
-                }
-
-                string = "key_" + keyCode;
-            }
-
-            var tweenObj = target._cc_tweenObj;
-            if(!tweenObj) tweenObj = target._cc_tweenObj = {};
-
-            tweenObj[valueName] = target[valueName];
-
-            var array = _registedDic[string];
-            if(!array) array = _registedDic[string] = [];
-
-            array.push(
-            {
-                keyName: keyName,
-                target: target,
-                valueName: valueName,
-                tweenObj: tweenObj,
-                delta: delta,
-                options: options? options: {}
-            });
         }
     };
 
