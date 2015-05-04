@@ -52,8 +52,8 @@
 
             //_p.toFirstCut();
 
-            var pauseDuration = 2.6;
-            var twistDuration = .9;
+            var pauseDuration = 1.6;
+            var twistDuration = 3.9;
 
             IntroText.object3D.visible = true;
 
@@ -199,7 +199,7 @@
 
                 TimelineUI.show();
 
-                Main.viewToCity();
+                Main.viewToCurrentCity();
 
             });
         };

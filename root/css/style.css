@@ -300,3 +300,39 @@ canvas {
     background: url(../images/city_label_small_99.png) no-repeat;
     top:18px;
 }
+
+/** confirm dialog **/
+.confirm_dialog{
+    position: absolute;
+    left:50%;
+    top:50%;
+    z-index: 2001;
+    width: 316px;
+    height:123px;
+    margin-left:-158px;
+    margin-top:-60px;
+    background:url(../images/confirm_btn_bg.png);
+    display: none;
+}
+.confirm_dialog .btn_yes{
+    position: absolute;
+    left:50%;
+    margin-left:-104px;
+    bottom: 41px;
+    width: 100px;
+    height: 50px;
+    background:url(../images/confirm_btn_01.png) 0 -50px;
+}
+.confirm_dialog .btn_no{
+    position: absolute;
+    left:50%;
+    margin-left:4px;
+    bottom: 41px;
+    width: 100px;
+    height: 50px;
+    background:url(../images/confirm_btn_02.png) 0 -50px;
+}
+.confirm_dialog .btn_yes:hover, .confirm_dialog .btn_no:hover{
+    background-position: 0 0;
+    cursor: pointer;
+}

@@ -487,10 +487,7 @@
         {
             _p.hide(function()
             {
-                SceneAnime.instance.switchMapContent(true);
-
-                Main.viewToCity();
-                //CameraControl.instance.
+                Main.toVoteMode();
             });
         });
     };
@@ -519,6 +516,71 @@
         TweenMax.to(doms.container,.6, {alpha:0, onComplete:function()
         {
             $(doms.container).css("display", "none");
+            if(cb) cb.apply();
+        }});
+
+    };
+
+
+
+}());
+
+(function(){
+
+    var _p = window.ConfirmDialog = {};
+
+    var _isHiding = true;
+
+    var doms = {};
+
+    _p.init = function()
+    {
+        doms.container = $(".confirm_dialog")[0];
+        doms.btnYes = $(".confirm_dialog .btn_yes")[0];
+        doms.btnNo = $(".confirm_dialog .btn_no")[0];
+
+        $(doms.container).css("display", "block").detach();
+    };
+
+    _p.show = function(cb_yes, cb_no, cb_complete)
+    {
+        if(!_isHiding) return;
+        _isHiding = false;
+
+        $(doms.btnYes).unbind("click");
+        $(doms.btnNo).unbind("click");
+
+        $("body").append(doms.container);
+
+        TweenMax.killTweensOf(doms.container);
+        TweenMax.set(doms.container, {alpha:0});
+        TweenMax.to(doms.container,.6, {alpha:1, onComplete:function()
+        {
+            $(doms.btnYes).on("click", function()
+            {
+                _p.hide(cb_yes);
+            });
+
+            $(doms.btnNo).on("click", function()
+            {
+                _p.hide(cb_no);
+            });
+
+            if(cb_complete) cb_complete.apply();
+
+        }});
+
+    };
+
+    _p.hide = function(cb)
+    {
+        if(_isHiding) return;
+        _isHiding = true;
+
+        TweenMax.killTweensOf(doms.container);
+        TweenMax.to(doms.container,.6, {alpha:0, onComplete:function()
+        {
+            $(doms.container).detach();
             if(cb) cb.apply();
         }});
 

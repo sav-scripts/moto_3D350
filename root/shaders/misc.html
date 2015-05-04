@@ -90,6 +90,16 @@
 
         newUv *= .5;
 
+        return texture2D(tex, newUv);
+    }
+
+    vec4 PostFX_2(sampler2D tex, vec2 uv, float twistPower)
+    {
+        vec2 newUv = vec2(.5, .0);
+
+        //newUv = smoothstep(1.0, .0, twistPower) * (uv - newUv) + newUv;
+        newUv.y = smoothstep(1.0, .0, twistPower) * (uv.y - newUv.y) + newUv.y;
+        newUv.x = newUv.x - smoothstep(.0, 1.0, twistPower) * (uv.x - newUv.x);
 
         return texture2D(tex, newUv);
     }
@@ -98,6 +108,8 @@
     {
 
         //gl_FragColor = texture2D(texture, vUv);
+
+        // gl_FragColor = PostFX(texture, vUv, twistPower);
 
         gl_FragColor = PostFX(texture, vUv, twistPower);
         gl_FragColor.w *= opacity;

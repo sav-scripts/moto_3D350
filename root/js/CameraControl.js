@@ -16,13 +16,25 @@
 
         _p.lookingCenter = new THREE.Vector3(0, 0, 0);
 
+
         var cameraInitPosition = _p.cameraInitPosition = new THREE.Vector3(0, -600, 600);
 
-        var options = _p.settings = {min:50, max:1400};
+        _p.settings =
+        {
+            min:50,
+            max:1400,
+            standard: 600
+        };
+
+        var options =
+        {
+            min: _p.settings.min,
+            max: _p.settings.max
+        };
 
 
 
-        var values = _p.values = {distance:600};
+        var values = _p.values = {distance: _p.settings.standard};
 
 
         _objectControl.add("mouseWheel", values, "distance", -50, options);
@@ -36,27 +48,6 @@
 
         _objectControl.add("a", _scene.rotation, "y",.1);
         _objectControl.add("d", _scene.rotation, "y", -.1);
-
-
-        /*
-         var moveSpeed = 10;
-
-         _objectControl.add("w", _camera.position, "y", moveSpeed);
-         _objectControl.add("s", _camera.position, "y", -moveSpeed);
-         _objectControl.add("a", _camera.position, "x", moveSpeed);
-         _objectControl.add("d", _camera.position, "x", -moveSpeed);
-
-        //_objectControl.add("w", _p.lookingCenter, "y", moveSpeed);
-        //_objectControl.add("s", _p.lookingCenter, "y", -moveSpeed);
-        //_objectControl.add("a", _p.lookingCenter, "x", moveSpeed);
-        //_objectControl.add("d", _p.lookingCenter, "x", -moveSpeed);
-
-        //_objectControl.add("w", _scene.position, "z", moveSpeed);
-        //_objectControl.add("s", _scene.position, "z", -moveSpeed);
-        //_objectControl.add("a", _scene.position, "x", moveSpeed);
-        //_objectControl.add("d", _scene.position, "x", -moveSpeed);
-
-         */
 
         _objectControl.add("up", cameraInitPosition, "z", 10);
         _objectControl.add("down", cameraInitPosition, "z", -10);
@@ -81,7 +72,6 @@
             vec = vec.add(_p.lookingCenter);
 
             _camera.position.copy(vec);
-
         };
 
         _p.lookTo = function(position, duration, cb_complete)
@@ -91,7 +81,21 @@
             TweenMax.to(_p.lookingCenter, duration, {x:position.x, y:position.y, z:position.z, ease:Power1.easeInOut, onComplete:cb_complete});
         };
 
+        _p.zoomTo = function(cb, cameraDistance, duration, ease)
+        {
+            if(!cameraDistance) cameraDistance = _p.settings.standard;
 
+            if(duration == null)
+            {
+                var dDistance = Math.abs(_p.values.distance - cameraDistance);
+                var speed = 300;
+                duration = dDistance / speed;
+            }
+
+            if(!ease) ease = Power1.easeInOut;
+
+            TweenMax.to(_p.values, duration, {distance:cameraDistance, ease:ease, onComplete: cb});
+        };
 
         /*
         _p.updateDistance_old = function()

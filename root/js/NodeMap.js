@@ -112,13 +112,25 @@
 
         _p.update = function()
         {
+            var minDistance = 600;
+
+            var dDistance = CameraControl.instance.values.distance - minDistance;
+            var scale = 1 - dDistance / 1200;
+
+
             for(var i=0;i<_nodeList.length;i++)
             {
                 var obj = _nodeList[i];
 
                 var screenPosition = MyThreeHelper.worldToScreen(obj.position, _renderer, _camera);
 
-                $(obj.label.domElement).css("left", screenPosition.x - obj.label.width *.5).css("top", screenPosition.y + 14);
+                //$(obj.label.domElement).css("left", screenPosition.x - obj.label.width *.5).css("top", screenPosition.y + 14);
+
+                TweenMax.set(obj.label.domElement, {scale:scale, transformOrigin:"50% 0"});
+
+                var width = obj.label.width * scale;
+
+                $(obj.label.domElement).css("left", screenPosition.x - width *.5).css("top", screenPosition.y + 14 * scale);
 
             }
         };
@@ -395,6 +407,31 @@
                 SceneAnime.instance.toDetailMode(cityIndex);
 
             });
+        }
+        else
+        {
+
+            $(dom).on("click", function()
+            {
+                if(NodeMap.instance.isLocking) return;
+
+                //SceneAnime.instance.toDetailMode(cityIndex);
+                Main.viewToCity(cityIndex, function()
+                {
+                    CameraControl.instance.zoomTo(function()
+                    {
+                        ConfirmDialog.show(function()
+                        {
+                            console.log("yes");
+                        }, function()
+                        {
+                            //console.log("no");
+                            Main.viewToCurrentCity();
+                        });
+                    });
+                });
+            });
+
         }
 
     };

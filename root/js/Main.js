@@ -12,7 +12,8 @@
         videoWidth: 1280,
         videoHeight: 720,
         videoWidthBleed: 20,
-        videoHeightBleed: 180
+        videoHeightBleed: 180,
+        currentMode: null
     };
 
     _p.getVideoViewSetting = function()
@@ -25,39 +26,65 @@
     _p.optionCitys = [];
     _p.routeCitys = [];
 
-
-    _p.viewToCity = function(cityIndex)
+    _p.toRouteMode = function()
     {
-        if(cityIndex == null) cityIndex = Main.currentCityIndex;
 
+    };
+
+    _p.toVoteMode = function()
+    {
+
+        SceneAnime.instance.switchMapContent(true);
+
+        //Main.viewToCurrentCity();
+        Main.viewToCurrentCity();
+    };
+
+    _p.viewToCurrentCity = function(cb)
+    {
+        _p.viewToCity(_p.currentCityIndex, function()
+        {
+            _p.fitCameraWithCitys(cb);
+        });
+    };
+
+    _p.viewToCity = function(cityIndex, cb)
+    {
         var obj = Main.city_data[cityIndex];
         var position = new THREE.Vector3(obj.position.x, obj.position.y, 0);
 
 
-        CameraControl.instance.lookTo(position,.5, function()
+        CameraControl.instance.lookTo(position,.5, cb);
+
+    };
+
+    _p.fitCameraWithCitys = function(cb)
+    {
+        var i, cityObj, positions = [];
+        for(i=0;i<Main.optionCitys.length;i++)
         {
-            var i, cityObj, positions = [];
-            for(i=0;i<Main.optionCitys.length;i++)
+            cityObj = Main.optionCitys[i];
+
+            positions.push(cityObj.position);
+        }
+
+        var cameraDistance = CameraControl.instance.values.distance;
+        var newDistance = MyThreeHelper.getCameraDistanceForPositions(positions, cameraDistance, window.innerWidth - 60, window.innerHeight - 140);
+
+        //console.log("new Distance = " + newDistance);
+
+        if(newDistance != cameraDistance)
+        {
+            TweenMax.to(CameraControl.instance.values, 1, {distance:newDistance, ease:Power1.easeInOut, onComplete:function()
             {
-                cityObj = Main.optionCitys[i];
-
-                positions.push(cityObj.position);
-            }
-
-            var cameraDistance = CameraControl.instance.values.distance;
-            var newDistance = MyThreeHelper.getCameraDistanceForPositions(positions, cameraDistance, window.innerWidth - 60, window.innerHeight - 140);
-
-            //console.log("new Distance = " + newDistance);
-
-            if(newDistance != cameraDistance)
-            {
-                TweenMax.to(CameraControl.instance.values, 1, {distance:newDistance, ease:Power1.easeInOut, onComplete:function()
-                {
-                    CameraControl.instance.updateValues();
-                }});
-            }
-        });
-
+                CameraControl.instance.updateValues();
+                if(cb) cb.apply();
+            }});
+        }
+        else
+        {
+            if(cb) cb.apply();
+        }
     };
 
 
@@ -119,6 +146,7 @@
                     {
                         CityLabels.init(function()
                         {
+                            ConfirmDialog.init();
                             TimelineUI.init();
                             TopUI.init();
                             IndexIntro.init();
@@ -563,7 +591,7 @@
 
                 //_lookingCenter = point;
 
-                //_cameraControl.lookTo(point);
+                _cameraControl.lookTo(_projectedMouse);
 
                 //MyThreeHelper.test(_projectedMouse, _renderer, _camera, _testPlane);
             }
