@@ -13,7 +13,7 @@
         videoHeight: 720,
         videoWidthBleed: 20,
         videoHeightBleed: 180,
-        currentMode: null
+        currentMode: ""
     };
 
     _p.getVideoViewSetting = function()
@@ -28,12 +28,23 @@
 
     _p.toRouteMode = function()
     {
+        Main.currentMode = "route";
+
+        NodeMap.instance.switchLabels(false, .6, function()
+        {
+            NodeMap.instance.switchLabels(true,.6);
+            NodeMap.instance.changeLabelMode(false);
+
+            _p.fitCameraWithRouteCitys();
+        });
 
     };
 
     _p.toVoteMode = function()
     {
+        Main.currentMode = "vote";
 
+        NodeMap.instance.changeLabelMode(true);
         SceneAnime.instance.switchMapContent(true);
 
         //Main.viewToCurrentCity();
@@ -44,7 +55,7 @@
     {
         _p.viewToCity(_p.currentCityIndex, function()
         {
-            _p.fitCameraWithCitys(cb);
+            _p.fitCameraWithVoteCitys(cb);
         });
     };
 
@@ -58,17 +69,43 @@
 
     };
 
-    _p.fitCameraWithCitys = function(cb)
+    _p.fitCameraWithRouteCitys = function(cb)
+    {
+        var cityArray = Main.routeCitys;
+
+        var xSum = 0, ySum = 0;
+
+        for(var i=0;i<cityArray.length;i++)
+        {
+            var position =cityArray[i].position;
+            xSum += position.x;
+            ySum += position.y;
+        }
+
+        var targetPosition = new THREE.Vector3(xSum / cityArray.length, ySum / cityArray.length, 0);
+
+        CameraControl.instance.lookTo(targetPosition,.5, function()
+        {
+            _p.fitCameraWithCitys(Main.routeCitys, 450, cb);
+        });
+    };
+
+    _p.fitCameraWithVoteCitys = function(cb)
+    {
+        _p.fitCameraWithCitys(Main.optionCitys, null, cb);
+    };
+
+    _p.fitCameraWithCitys = function(cityArray, cameraDistance, cb)
     {
         var i, cityObj, positions = [];
-        for(i=0;i<Main.optionCitys.length;i++)
+        for(i=0;i<cityArray.length;i++)
         {
             cityObj = Main.optionCitys[i];
 
             positions.push(cityObj.position);
         }
 
-        var cameraDistance = CameraControl.instance.values.distance;
+        if(cameraDistance == null) cameraDistance = CameraControl.instance.values.distance;
         var newDistance = MyThreeHelper.getCameraDistanceForPositions(positions, cameraDistance, window.innerWidth - 60, window.innerHeight - 140);
 
         //console.log("new Distance = " + newDistance);
@@ -86,6 +123,7 @@
             if(cb) cb.apply();
         }
     };
+
 
 
 
@@ -135,30 +173,37 @@
 
         applySetting();
 
+        var appId = "1384405598556258";
+        //SavFB.init(appId);
+        FBHelper.init(appId, execute);
 
-        getWorldMapData(function()
+
+        function execute()
         {
-            ShaderLoader.load(["misc", "point_cloud_map", "guide_line", "node_map", "detail_map"], function()
+            getWorldMapData(function()
             {
-                _pointMap = new PointCloudMap(_mapData, _scene, function()
+                ShaderLoader.load(["misc", "point_cloud_map", "guide_line", "node_map", "detail_map"], function()
                 {
-                    getVoteData(function()
+                    _pointMap = new PointCloudMap(_mapData, _scene, function()
                     {
-                        CityLabels.init(function()
+                        getVoteData(function()
                         {
-                            ConfirmDialog.init();
-                            TimelineUI.init();
-                            TopUI.init();
-                            IndexIntro.init();
-                            build();
+                            CityLabels.init(function()
+                            {
+                                ConfirmDialog.init();
+                                TimelineUI.init();
+                                TopUI.init();
+                                IndexIntro.init();
+                                build();
+                            });
                         });
                     });
                 });
             });
-        });
+        }
+
 
         VideoPlayer.init();
-
     };
 
     function getVoteData(cb)
@@ -207,6 +252,8 @@
             "show city name": true
         };
 
+        _datGUI = new dat.GUI();
+        /*
         _datGUI = new dat.GUI(
             {
                 load:{
@@ -261,6 +308,7 @@
                 }
             }
         }});
+        */
 
         if(!_showui) $(_datGUI.domElement).detach();
         setupTrace();
@@ -274,7 +322,6 @@
             var string = v? "block": "none";
             $(".city_label_layer").css("display", string);
         });
-
 
         trace("pixel ratio = " + window.devicePixelRatio);
 
@@ -434,8 +481,10 @@
             //cityIndex = i;
             obj = Main.city_data[cityIndex];
 
+            var nodeType = "route";
+            if(i == routeArray.length-1) nodeType = "current";
 
-            cityObj = addCity(new THREE.Vector3(obj.position.x, obj.position.y, 0), obj.name_en, obj.name_ch, true, cityIndex);
+            cityObj = addCity(new THREE.Vector3(obj.position.x, obj.position.y, 0), obj.name_en, obj.name_ch, nodeType, cityIndex);
             citys.push(cityObj);
             Main.routeCitys.push(cityObj);
 
@@ -467,7 +516,7 @@
 
             obj = Main.city_data[cityIndex];
 
-            cityObj = addCity(new THREE.Vector3(obj.position.x, obj.position.y, 0), obj.name_en, obj.name_ch, false, cityIndex, obj.num_votes, voteWeight);
+            cityObj = addCity(new THREE.Vector3(obj.position.x, obj.position.y, 0), obj.name_en, obj.name_ch, "voteOption", cityIndex, obj.num_votes, voteWeight);
             citys.push(cityObj);
             Main.optionCitys.push(cityObj);
 
@@ -479,10 +528,10 @@
         }
 
 
-        function addCity(position, englishName, chineseName, isOld, cityIndex, votes, voteWeight)
+        function addCity(position, englishName, chineseName, nodeType, cityIndex, votes, voteWeight)
         {
             var obj = {position: position, votes:votes, voteWeight:voteWeight};
-            _nodeMap.createNode(position, englishName, chineseName, isOld, cityIndex);
+            _nodeMap.createNode(position, englishName, chineseName, nodeType, cityIndex);
 
             return obj;
         }
@@ -521,7 +570,7 @@
     function setupMouseTestPlane()
     {
         //var testGeometry = new THREE.PlaneGeometry( _mapData.width, _mapData.height, 1, 1 );
-        var testGeometry = new THREE.PlaneBufferGeometry( _mapData.width*2, _mapData.height*2, 1, 1 );
+        var testGeometry = new THREE.PlaneBufferGeometry( _mapData.width, _mapData.height, 1, 1 );
         var testMarterial = new THREE.MeshBasicMaterial({wireframe:true, visible: false});
         _testPlane = new THREE.Mesh(testGeometry, testMarterial);
         _scene.add(_testPlane);

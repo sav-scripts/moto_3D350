@@ -52,8 +52,8 @@
 
             //_p.toFirstCut();
 
-            var pauseDuration = 1.6;
-            var twistDuration = 3.9;
+            var pauseDuration = 3;
+            var twistDuration = .9;
 
             IntroText.object3D.visible = true;
 
@@ -204,7 +204,7 @@
             });
         };
 
-        _p.switchMapContent = function(showIt, duration)
+        _p.switchMapContent = function(showIt, duration, cb)
         {
             var opacity = showIt? 1: 0;
             if(duration == null) duration = .6;
@@ -213,6 +213,7 @@
 
             _nodeMap.switchLabels(showIt, duration);
 
+            if(cb) TweenMax.delayedCall(cb);
         };
 
 

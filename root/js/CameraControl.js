@@ -21,7 +21,7 @@
 
         _p.settings =
         {
-            min:50,
+            min:400,
             max:1400,
             standard: 600
         };
@@ -58,6 +58,7 @@
         /** public methods **/
         _p.updateDistance = function()
         {
+
             _camera.position.copy(cameraInitPosition);
             _camera.position.x = _p.lookingCenter.x;
             _camera.up = new THREE.Vector3(0,0,1);

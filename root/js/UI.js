@@ -485,10 +485,32 @@
 
         $(doms.button).on("click", function()
         {
+            FBHelper.login(["public_profile"], function()
+            {
+                FB.api('/me', function(response)
+                {
+                    FBHelper.uname = response.name;
+
+                    console.log("fb uid: " + FBHelper.uid + ", uname: " + FBHelper.uname);
+
+                    _p.hide(function()
+                    {
+                        Main.toVoteMode();
+                        //Main.toRouteMode();
+                    });
+                });
+
+
+            }, function()
+            {
+                alert("請先登入 Facebook 才能參加活動.");
+            });
+            /*
             _p.hide(function()
             {
                 Main.toVoteMode();
             });
+            */
         });
     };
 

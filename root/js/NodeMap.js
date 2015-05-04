@@ -78,14 +78,14 @@
 
 
         /** public methods **/
-        _p.createNode = function(position, englishName, chineseName, isOld, cityIndex)
+        _p.createNode = function(position, englishName, chineseName, nodeType, cityIndex)
         {
             geometry.vertices.push(position.clone());
 
-            attributes.nodeType.value.push(isOld? 1: 0);
+            attributes.nodeType.value.push(nodeType == "voteOption"? 0: 1);
 
 
-            var nodeLabel = new NodeLabel(_sampleDom, englishName, chineseName, isOld, cityIndex);
+            var nodeLabel = new NodeLabel(_sampleDom, englishName, chineseName, nodeType, cityIndex);
 
             _nodeList.push(
                 {
@@ -115,7 +115,7 @@
             var minDistance = 600;
 
             var dDistance = CameraControl.instance.values.distance - minDistance;
-            var scale = 1 - dDistance / 1200;
+            var scale = 1 - dDistance / 1800;
 
 
             for(var i=0;i<_nodeList.length;i++)
@@ -153,14 +153,33 @@
             }
         };
 
-        _p.switchLabels = function(isShow, duration)
+        _p.switchLabels = function(isShow, duration, cb)
         {
             if(!duration) duration = 0;
 
             var targetAlpha = isShow? 1: 0;
 
-            TweenMax.to(".city_label_layer", duration, {autoAlpha: targetAlpha});
+            TweenMax.to(".city_label_layer", duration, {autoAlpha: targetAlpha, onComplete:cb});
             //TweenMax.to()
+        };
+
+        _p.changeLabelMode = function(isVoteMode)
+        {
+            for(var i=0;i<_nodeList.length;i++)
+            {
+                var label = _nodeList[i].label;
+                var display;
+                if(isVoteMode)
+                {
+                    $(label.domElement).css("display", label.nodeType == "route"? "none": "block");
+                    //if(label.nodeType == "vote")
+                }
+                else
+                {
+                    $(label.domElement).css("display", label.nodeType == "voteOption"? "none": "block");
+                }
+
+            }
         };
     };
 
@@ -347,9 +366,11 @@
 
     (function(){
 
-    window.NodeLabel = function(sample, englishName, chineseName, isOld, cityIndex)
+    window.NodeLabel = function(sample, englishName, chineseName, nodeType, cityIndex)
     {
         var _p = this;
+
+        _p.nodeType = nodeType;
 
         /*
         var dom = _p.domElement = $(sample).clone();
@@ -380,12 +401,13 @@
         _p.width = $(imageDom).width();
 
 
-        if(isOld)
+        if(nodeType == "route" || nodeType == "current")
         {
             $(dom).on("mouseover", function(event)
             {
                 if(NodeMap.instance.isLocking) return;
                 if($(dom).has(event.relatedTarget).length || event.relatedTarget == dom) return;
+                if(Main.currentMode == "vote") return;
 
                 Main.detailMap.show(cityIndex);
 
@@ -395,6 +417,7 @@
             {
                 if(NodeMap.instance.isLocking) return;
                 if($(dom).has(event.relatedTarget).length || event.relatedTarget == dom) return;
+                if(Main.currentMode == "vote") return;
 
                 Main.detailMap.hide();
 
@@ -404,13 +427,20 @@
             {
                 if(NodeMap.instance.isLocking) return;
 
-                SceneAnime.instance.toDetailMode(cityIndex);
+                if(Main.currentMode == "vote")
+                {
+                    Main.toRouteMode();
+                }
+                else
+                {
+                    SceneAnime.instance.toDetailMode(cityIndex);
+                }
+
 
             });
         }
-        else
+        else if(nodeType == "voteOption")
         {
-
             $(dom).on("click", function()
             {
                 if(NodeMap.instance.isLocking) return;
@@ -422,7 +452,38 @@
                     {
                         ConfirmDialog.show(function()
                         {
-                            console.log("yes");
+                            //console.log("yes");
+
+                            var urlPath = Utility.getPath();
+
+                            var url = urlPath + "images/image_test.png";
+
+                            console.log("urlPath = " + urlPath);
+
+                            var params =
+                            {
+                                method: 'feed',
+                                name: "AEON 3D350",
+                                picture: url,
+                                caption: "caption",
+                                description: "share description",
+                                link: urlPath,
+                                ref: "share_city_" + cityIndex
+                            };
+
+                            FB.ui(params, function(response)
+                            {
+                                //console.log("response = " + JSON.stringify(response));
+                                if (response && response.post_id)
+                                {
+                                    console.log("share complete");
+                                }
+                                else
+                                {
+                                    alert("您必須要分享才能參加活動喔.");
+                                }
+                            });
+
                         }, function()
                         {
                             //console.log("no");
