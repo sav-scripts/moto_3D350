@@ -22,12 +22,14 @@
         Doms.btnProduct = $(".menu_btn_product")[0];
         Doms.logo = $(".logo")[0];
 
+        /*
         $(_menuDom).on("mouseover", function(event)
         {
             if($(_menuDom).has(event.relatedTarget).length || event.relatedTarget == _menuDom) return;
 
             openMenu();
         });
+        */
 
         $(_menuDom).on("mouseout", function(event)
         {
@@ -41,12 +43,12 @@
            openMenu();
         });
 
-        /*
+
         $(Doms.menuIcon).on("mouseover", function()
         {
             openMenu();
         });
-        */
+
 
         TweenMax.set(Doms.btnFB, {marginRight: -250});
         TweenMax.set(Doms.btnRule, {marginRight: -250});
@@ -125,7 +127,11 @@
     var _eventProgress = 1;
 
     var _time = new Date().getTime();
-    var _totalSec = 24 * 60 * 60;
+    var _daySec = 24 * 60 * 60;
+    var _dayMileSec = _daySec * 1000;
+    var _hourMileSec = 60 * 60 * 1000;
+    var _minuteMileSec = 60 * 1000;
+
     var _startSec;
     //console.log(oldTime);
 
@@ -140,6 +146,8 @@
 
     var $nodePart;
 
+    var _timeLabel;
+
 
     _p.init = function()
     {
@@ -148,6 +156,9 @@
         _timelineDom = $(".timeline_layer")[0];
 
         $nodePart = $(".node_part");
+
+
+
 
         var systemTime = Main.currentData.system_time;
         var array = systemTime.split("/");
@@ -158,9 +169,38 @@
         _startSec = hh * 3600 + mm * 60 + ss;
 
 
+
+
+        _timeLabel = document.createElement("div");
+        _timeLabel.className = "time_label";
+        _timelineDom.appendChild(_timeLabel);
+        TweenMax.set(_timeLabel, {rotation:-70, transformOrigin:"left top", alpha:0});
+
+        var timeLabelTl = new TimelineMax({repeat:-1});
+        timeLabelTl.add(function()
+        {
+            var restDays = 7 - _eventProgress - 1;
+            var nowMileSec = _startSec * 1000 + (new Date().getTime() - _time);
+
+            var dMileSec = _dayMileSec - nowMileSec;
+
+            dMileSec += restDays * _dayMileSec;
+
+            var hour = parseInt(dMileSec / _hourMileSec);
+            var minute = String(parseInt((dMileSec%_hourMileSec)/_minuteMileSec) + 100).substr(1);
+            var sec = String(parseInt((dMileSec%_minuteMileSec)/1000) + 100).substr(1);
+            var mSec = String(dMileSec%1000 + 1000).substr(1);
+
+            _timeLabel.innerHTML = hour + ":" + minute + ":" + sec + ":" + mSec;
+
+        },.033);
+
+
+
         _totalWidth = (NUM_NODES-1) * MIN_GAP;
         var startX =(-_totalWidth) * .5;
         var nodeDom, labelDom;
+
 
         for(var i=0;i<NUM_NODES;i++)
         {
@@ -238,6 +278,9 @@
 
         TweenMax.killTweensOf(_timelineDom);
         TweenMax.to(_timelineDom,.6, {bottom:0});
+
+        TweenMax.killTweensOf(_timeLabel);
+        TweenMax.to(_timeLabel,.5, {alpha:1});
     };
 
     _p.hide = function()
@@ -247,6 +290,9 @@
 
         TweenMax.killTweensOf(_timelineDom);
         TweenMax.to(_timelineDom,.6, {bottom:-90});
+
+        TweenMax.killTweensOf(_timeLabel);
+        TweenMax.to(_timeLabel,.5, {alpha:0});
 
     };
 
@@ -282,7 +328,7 @@
 
         var sec = _startSec + dSec;
 
-        var dayProgress = sec / _totalSec * dayUnitPercent;
+        var dayProgress = sec / _daySec * dayUnitPercent;
 
         var percent;
 
@@ -301,9 +347,183 @@
         $(".progress_line").css("width", percent + "%");
         $(".progress_line_head").css("left", percent + "%");
 
+        $(_timeLabel).css("left", percent + "%");
+
         //console.log("day progress = " + dayProgress);
 
         //console.log("dTime = " + dTime);
     };
+
+}());
+
+
+(function(){
+
+    var _p = window.CityLabels = {};
+
+    var _cityLabelDic = {};
+
+    _p.init = function(cb)
+    {
+        /*
+         var dom = document.createElement("div");
+         dom.className = "city_label_image";
+         $("body").append(dom);
+         */
+
+        var array = [];
+        var key,
+            index = 0;
+
+        for(key in Main.city_data)
+        {
+            array.push(Main.city_data[key]);
+        }
+
+
+
+        //var array = Main.city_data.city_data,
+
+
+        loadOne();
+
+        function loadDone()
+        {
+            cb.apply();
+        }
+
+        function loadOne()
+        {
+            var dataObj = array[index];
+            var cityIndex = dataObj.index;
+
+            var obj = _cityLabelDic[cityIndex] = {};
+
+            obj.labelSrc = "images/city_label_" + cityIndex + ".png";
+            obj.smallLabelSrc ="images/city_label_small_" + cityIndex + ".png";
+
+            var image = new Image();
+            image.onload = function()
+            {
+                smallImage.src = obj.smallLabelSrc;
+                obj.labelWidth = image.width;
+            };
+
+            image.onerror = function()
+            {
+                alert("fail when loaindg city label for: ["+dataObj.name_en+"]");
+            };
+
+            var smallImage = new Image();
+            smallImage.onload = function()
+            {
+                obj.smallLabelWidth = smallImage.width;
+
+                index++;
+                (index < array.length)? loadOne(): loadDone();
+            };
+
+            smallImage.onerror = function()
+            {
+                alert("fail when loaindg city label small for: ["+dataObj.name_en+"]");
+            };
+
+            image.src = obj.labelSrc;
+        }
+    };
+
+    _p.getCityLabelDom = function(cityIndex)
+    {
+        var obj = _cityLabelDic[cityIndex];
+        if(!obj) console.error("cityIndex: " + cityIndex + " not exist.");
+
+        var dom = obj.labelDom;
+        if(!dom)
+        {
+            dom = obj.labelDom = document.createElement("div");
+            dom.className = "city_label_image";
+            $(dom).css("width", obj.labelWidth).css("background-image", "url("+obj.labelSrc+")");
+        }
+
+        return dom;
+    };
+
+    _p.getSmallCityLabelDom = function(cityIndex)
+    {
+        var obj = _cityLabelDic[cityIndex];
+        if(!obj) console.error("cityIndex: " + cityIndex + " not exist.");
+
+        var dom = obj.smallLabelDom;
+        if(!dom)
+        {
+            dom = obj.smallLabelDom = document.createElement("div");
+            dom.className = "city_label_small";
+            $(dom).css("width", obj.smallLabelWidth).css("background-image", "url("+obj.smallLabelSrc+")").css("margin-left", -obj.smallLabelWidth *.5);
+        }
+
+        return dom;
+    };
+
+}());
+
+(function(){
+
+    var _p = window.IndexIntro = {};
+
+    var doms = {};
+
+    var _isHiding = true;
+
+    _p.init = function()
+    {
+        doms.container = $(".index_intro")[0];
+        doms.cover = $(".index_intro_cover")[0];
+        doms.text = $(".index_intro_text")[0];
+        doms.button = $(".index_intro_button")[0];
+
+        $(doms.container).css("display", "none");
+
+        $(doms.button).on("click", function()
+        {
+            _p.hide(function()
+            {
+                SceneAnime.instance.switchMapContent(true);
+
+                Main.viewToCity();
+                //CameraControl.instance.
+            });
+        });
+    };
+
+    _p.show = function()
+    {
+        if(!_isHiding) return;
+        _isHiding = false;
+
+        $(doms.container).css("display", "block");
+
+        var array = [doms.cover, doms.text, doms.button];
+
+        var tl = new TimelineMax();
+        tl.set(doms.container, {alpha:1});
+        tl.set(array, {alpha:0});
+        tl.staggerTo(array,.6, {alpha:1},.3);
+
+    };
+
+    _p.hide = function(cb)
+    {
+        if(_isHiding) return;
+        _isHiding = true;
+
+        TweenMax.to(doms.container,.6, {alpha:0, onComplete:function()
+        {
+            $(doms.container).css("display", "none");
+            if(cb) cb.apply();
+        }});
+
+    };
+
+
 
 }());

@@ -68,6 +68,7 @@
         _p.updateDistance = function()
         {
             _camera.position.copy(cameraInitPosition);
+            _camera.position.x = _p.lookingCenter.x;
             _camera.up = new THREE.Vector3(0,0,1);
             _camera.lookAt(_p.lookingCenter);
 
@@ -82,6 +83,34 @@
             _camera.position.copy(vec);
 
         };
+
+        _p.lookTo = function(position, duration, cb_complete)
+        {
+            if(duration == null) duration = 1;
+            TweenMax.killTweensOf(_p.lookingCenter);
+            TweenMax.to(_p.lookingCenter, duration, {x:position.x, y:position.y, z:position.z, ease:Power1.easeInOut, onComplete:cb_complete});
+        };
+
+
+
+        /*
+        _p.updateDistance_old = function()
+        {
+            _camera.position.copy(cameraInitPosition);
+            _camera.up = new THREE.Vector3(0,0,1);
+            _camera.lookAt(_p.lookingCenter);
+
+            var vec = _camera.position.clone().sub(_p.lookingCenter).normalize();
+
+            //console.log("vec = " + vec.x + ", " + vec.y + ", " + vec.z);
+
+            vec = vec.multiplyScalar(values.distance);
+
+            vec = vec.add(_p.lookingCenter);
+
+            _camera.position.copy(vec);
+        };
+        */
 
         _p.lock = function()
         {

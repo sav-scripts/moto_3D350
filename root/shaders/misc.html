@@ -1,0 +1,107 @@
+<script id="base_map_vertex" type="x-shader/x-vertex">
+
+    varying vec2 vUv;
+
+    void main()
+    {
+        vUv = uv;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+
+
+</script>
+
+<script id="base_map_fragment" type="x-shader/x-fragment">
+
+    uniform float opacity;
+    uniform sampler2D texture;
+    uniform vec2 screenMouse;
+    uniform float alpha;
+
+    varying vec2 vUv;
+
+    #define PI 3.14159265358979
+    #define HALF_PI (PI/2.)
+
+    void main()
+    {
+
+        vec4 outColor;
+
+        outColor = texture2D(texture, vUv);
+
+        if(outColor.x < .5)
+        {
+            //gl_FragColor = vec4(1.0, 1.0, 1.0, (1.0 - outColor.r)*.1);
+            gl_FragColor = vec4(1.0, 1.0, 1.0, alpha);
+            gl_FragColor.w *= opacity;
+
+        }
+        else discard;
+
+    }
+
+</script>
+
+<script id="intro_text_vertex" type="x-shader/x-vertex">
+
+    varying vec2 vUv;
+
+    void main()
+    {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+
+
+</script>
+
+<script id="intro_text_fragment" type="x-shader/x-fragment">
+
+    uniform sampler2D texture;
+    uniform float opacity;
+    uniform float twistPower;
+
+    varying vec2 vUv;
+
+    #define M_PI 3.14159265358979
+    #define HALF_PI (M_PI/2.)
+
+    vec4 PostFX(sampler2D tex, vec2 uv, float twistPower)
+    {
+         vec2 uvVec = uv * 2.0;
+        uvVec.x -= 1.0;
+        uvVec.y -= 1.0;
+
+
+        float uvLength = length(uvVec);
+        twistPower *= smoothstep(1.0, .0, uvLength);
+
+        float arc = M_PI * twistPower;
+
+        vec2 newUv = uvVec;
+
+        newUv.x = uvVec.x * cos(arc) - uvVec.y * sin(arc);
+        newUv.y = uvVec.x * sin(arc) + uvVec.y * cos(arc);
+
+        newUv.x += 1.0;
+        newUv.y += 1.0;
+
+        newUv *= .5;
+
+
+        return texture2D(tex, newUv);
+    }
+
+    void main()
+    {
+
+        //gl_FragColor = texture2D(texture, vUv);
+
+        gl_FragColor = PostFX(texture, vUv, twistPower);
+        gl_FragColor.w *= opacity;
+
+    }
+
+</script>

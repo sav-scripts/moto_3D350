@@ -2,8 +2,10 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
-    <title>sample 0</title>
+    <title>AEON 3D-350</title>
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
@@ -20,19 +22,16 @@
     <script src="js/lib/Utility.0.0.9.js"></script>
 
     <script src="js/lib/stats.min.js"></script>
-    <!--script src="js/DefaultCameraControl.js"></script-->
     <script src="js/CameraControl.js"></script>
     <script src="js/ShaderLoader.js"></script>
-    <script src="js/QuadCloudMap.js"></script>
     <script src="js/PointCloudMap.js"></script>
-    <script src="js/BaseMap.js"></script>
+    <script src="js/MiscObject3D.js"></script>
     <script src="js/GuideLine.js"></script>
     <script src="js/NodeMap.js"></script>
     <script src="js/MyThreeHelper.js"></script>
     <script src="js/DetailMap.js"></script>
     <script src="js/SceneAnime.js"></script>
     <script src="js/VideoPlayer.js"></script>
-    <script src="js/CityLabels.js"></script>
     <script src="js/UI.js"></script>
     <script src="js/Main.js"></script>
     <script src="js/city_data.js"></script>
@@ -40,7 +39,6 @@
     <script src="api/fakedata.js"></script>
 
 
-    <link rel="stylesheet" type="text/css" href="css/style.css" />
 
 
 
@@ -49,6 +47,8 @@
 
 </head>
 <body onload="Main.init();">
+
+    <div class="loading_icon"></div>
 
     <div class="logo"></div>
     <div class="menu">
@@ -83,6 +83,12 @@
         <div class="timeline_node_now"></div>
         <div class="timeline_node_future"></div>
         -->
+    </div>
+
+    <div class="index_intro">
+        <div class="index_intro_cover"></div>
+        <div class="index_intro_text"></div>
+        <div class="index_intro_button"></div>
     </div>
 
 

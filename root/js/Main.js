@@ -22,6 +22,45 @@
 
     _p.onWindowResize = onWindowResize;
 
+    _p.optionCitys = [];
+    _p.routeCitys = [];
+
+
+    _p.viewToCity = function(cityIndex)
+    {
+        if(cityIndex == null) cityIndex = Main.currentCityIndex;
+
+        var obj = Main.city_data[cityIndex];
+        var position = new THREE.Vector3(obj.position.x, obj.position.y, 0);
+
+
+        CameraControl.instance.lookTo(position,.5, function()
+        {
+            var i, cityObj, positions = [];
+            for(i=0;i<Main.optionCitys.length;i++)
+            {
+                cityObj = Main.optionCitys[i];
+
+                positions.push(cityObj.position);
+            }
+
+            var cameraDistance = CameraControl.instance.values.distance;
+            var newDistance = MyThreeHelper.getCameraDistanceForPositions(positions, cameraDistance, window.innerWidth - 60, window.innerHeight - 140);
+
+            //console.log("new Distance = " + newDistance);
+
+            if(newDistance != cameraDistance)
+            {
+                TweenMax.to(CameraControl.instance.values, 1, {distance:newDistance, ease:Power1.easeInOut, onComplete:function()
+                {
+                    CameraControl.instance.updateValues();
+                }});
+            }
+        });
+
+    };
+
+
 
     /** settings **/
     var CAMERA_SETTING;
@@ -70,19 +109,22 @@
         applySetting();
 
 
-        getVoteData(function()
+        getWorldMapData(function()
         {
-            getWorldMapData(function()
+            ShaderLoader.load(["misc", "point_cloud_map", "guide_line", "node_map", "detail_map"], function()
             {
-                ShaderLoader.load(["base_map", "point_cloud_map", "guide_line", "node_map", "detail_map"], function()
+                _pointMap = new PointCloudMap(_mapData, _scene, function()
                 {
-                    CityLabels.init(function()
+                    getVoteData(function()
                     {
-                        TimelineUI.init();
-                        TopUI.init();
-                        build();
+                        CityLabels.init(function()
+                        {
+                            TimelineUI.init();
+                            TopUI.init();
+                            IndexIntro.init();
+                            build();
+                        });
                     });
-
                 });
             });
         });
@@ -122,6 +164,9 @@
         _renderer = new THREE.WebGLRenderer({ antialiasing: true, alpha:true });
         _renderer.setPixelRatio(window.devicePixelRatio);
         _renderer.setClearColor( 0x333333,.2);
+
+        MyThreeHelper.camera = _camera;
+        MyThreeHelper.renderer = _renderer;
 
         //document.body.appendChild(_renderer.domElement);
         $(".city_label_layer").before(_renderer.domElement);
@@ -215,15 +260,16 @@
         _scene.add(_p.guideLine.object3D);
 
         _baseMap = new BaseMap(_mapData);
-        _baseMap.setupGUI(folder);
+        //_baseMap.setupGUI(folder);
         _scene.add(_baseMap.object3D);
 
 
 
+        IntroText.init(_scene);
 
         setupMouseTestPlane();
 
-        _pointMap = new PointCloudMap(_mapData, _scene);
+
         _pointMap.setupGUI(_datGUI);
         _scene.add(_pointMap.object3D);
 
@@ -249,37 +295,14 @@
         _sceneAnime = new SceneAnime(_pointMap, _cameraControl, _p.guideLine, _baseMap, _nodeMap);
 
 
-        if(Utility.urlParams.skipintro == 1)
+        var dom = $(".loading_icon")[0];
+        TweenMax.to(dom,.6, {alpha:0, onComplete:function()
         {
-            introComplete();
-        }
-        else
-        {
-            _sceneAnime.toFirstCut();
-            $(window).on("mousedown", triggerIntro);
-        }
-
-        function triggerIntro(event)
-        {
-            if(event.target != _renderer.domElement) return;
-
-            $(window).unbind("mousedown", triggerIntro);
-            _sceneAnime.playIntro(introComplete);
-        }
+            $(dom).detach();
+        }});
 
 
-        function introComplete()
-        {
-            $(window).on("mousedown", onMousedown);
-            $(window).on("mousemove", onMousemove);
 
-            _p.guideLine.activeLights();
-
-            _nodeMap.isLocking = false;
-
-            TimelineUI.show();
-            TopUI.show();
-        }
 
 
         //_sceneAnime.playIntro();
@@ -296,6 +319,49 @@
         render();
 
 
+        /** start **/
+
+
+        if(Utility.urlParams.skipintro == 1)
+        {
+            introComplete();
+        }
+        else
+        {
+            _sceneAnime.toFirstCut();
+            triggerIntro();
+
+            //$(window).on("mousedown", triggerIntro);
+        }
+
+        function triggerIntro(event)
+        {
+            if(event && event.target != _renderer.domElement) return;
+
+            $(window).unbind("mousedown", triggerIntro);
+            _sceneAnime.playIntro(introComplete);
+        }
+
+        function introComplete()
+        {
+            _scene.remove(IntroText.object3D);
+
+            $(window).on("mousedown", onMousedown);
+            $(window).on("mousemove", onMousemove);
+
+            _p.guideLine.activeLights();
+
+            _nodeMap.isLocking = false;
+
+            TimelineUI.show();
+            TopUI.show();
+
+
+
+            SceneAnime.instance.switchMapContent(false, 0);
+
+            IndexIntro.show();
+        }
 
         function render()
         {
@@ -316,19 +382,7 @@
 
             if(_pointMap) _pointMap.update(_screenMouse, _projectedMouse);
 
-
-
-
-            if(_nodeMap)
-            {
-                _nodeMap.update();
-            }
-
-            //_camera.rotation.reorder("YZX");
-
-            //console.log(_camera.rotation);
-
-            //myLookAt();
+            if(_nodeMap) _nodeMap.update();
 
             _renderer.render(_scene, _camera);
             _stats.update();
@@ -339,32 +393,70 @@
     {
         var citys = [];
 
-        addCity(new THREE.Vector3(-64, 77, 0), "BERLIN", "柏林", true, 0);
-        addCity(new THREE.Vector3(7, 67, 0), "Athens", "雅典", true, 1);
-        addCity(new THREE.Vector3(74, 36, 0), "BERLIN", "柏林", true, 2);
-        addCity(new THREE.Vector3(235, 53, 0), "BERLIN", "柏林", true, 3);
-        addCity(new THREE.Vector3(205, 153, 0), "BERLIN", "柏林", false, 4);
-        addCity(new THREE.Vector3(311.5, -3.4, 0), "TAIWAN", "台灣", false, 5);
-        addCity(new THREE.Vector3(197, -5, 0), "BERLIN", "柏林", false, 6);
-        addCity(new THREE.Vector3(357, 50, 0), "BERLIN", "柏林", false, 7);
+        var routeArray = Main.currentData.event_route;
 
-        addLink(0, 1, 20, true);
-        addLink(1, 2, 20, true);
-        addLink(2, 3, 20, true);
-        addLink(3, 4, 20);
-        addLink(3, 5, 560);
-        addLink(3, 6, 40);
-        addLink(3, 7, 80);
+        var centerIndex;
 
+        var i, cityIndex, obj, optionObj, totalVotes = 0, voteWeight, cityObj;
 
-        //new NodeLabel("test", new THREE.Vector3(-20, 77, 0), _camera.project)
-
-
-        function addCity(position, englishName, chineseName, isOld, dayIndex)
+        for(i=0;i<routeArray.length;i++)
+        //for(i=0;i<=17;i++)
         {
-            citys.push({position: position});
-            _nodeMap.createNode(position, englishName, chineseName, isOld, dayIndex);
-            //_pointMap.addNode(position);
+            cityIndex = routeArray[i];
+            //cityIndex = i;
+            obj = Main.city_data[cityIndex];
+
+
+            cityObj = addCity(new THREE.Vector3(obj.position.x, obj.position.y, 0), obj.name_en, obj.name_ch, true, cityIndex);
+            citys.push(cityObj);
+            Main.routeCitys.push(cityObj);
+
+            if(i > 0)
+            {
+                addLink(i-1, i, 30, true);
+            }
+
+            if(i == routeArray.length-1)
+            {
+                Main.currentCityIndex = cityIndex;
+                centerIndex = citys.length - 1;
+            }
+        }
+
+        for(i=0;i<Main.currentData.options.length;i++)
+        {
+            optionObj = Main.currentData.options[i];
+            totalVotes += optionObj.num_votes;
+        }
+
+
+        for(i=0;i<Main.currentData.options.length;i++)
+        {
+            optionObj = Main.currentData.options[i];
+            voteWeight = optionObj.num_votes / totalVotes;
+
+            cityIndex = optionObj.city_index;
+
+            obj = Main.city_data[cityIndex];
+
+            cityObj = addCity(new THREE.Vector3(obj.position.x, obj.position.y, 0), obj.name_en, obj.name_ch, false, cityIndex, obj.num_votes, voteWeight);
+            citys.push(cityObj);
+            Main.optionCitys.push(cityObj);
+
+            var numLinks = 20 + parseInt(500 * voteWeight);
+
+            addLink(centerIndex, citys.length-1, numLinks);
+
+            //console.log("city: " + obj.name_ch + ", num votes: " + optionObj.num_votes + ", vote weight: " + totalVotes);
+        }
+
+
+        function addCity(position, englishName, chineseName, isOld, cityIndex, votes, voteWeight)
+        {
+            var obj = {position: position, votes:votes, voteWeight:voteWeight};
+            _nodeMap.createNode(position, englishName, chineseName, isOld, cityIndex);
+
+            return obj;
         }
 
         function addLink(startIndex, endIndex, num, isOld)
@@ -452,7 +544,7 @@
 
                 //console.log("point = " + point.x + ", " + point.y);
 
-                _projectedMouse = point.applyMatrix4(mat4);
+                _projectedMouse = point.clone().applyMatrix4(mat4);
 
                 //console.log("projectedMouse = " + _projectedMouse.x + ", " + _projectedMouse.y + ", " + _projectedMouse.z);
 
@@ -471,7 +563,9 @@
 
                 //_lookingCenter = point;
 
-                TweenMax.to(_cameraControl.lookingCenter, 1, {x:point.x, y:point.y, z:point.z, ease:Power1.easeInOut});
+                //_cameraControl.lookTo(point);
+
+                //MyThreeHelper.test(_projectedMouse, _renderer, _camera, _testPlane);
             }
 
         }

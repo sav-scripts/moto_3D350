@@ -12,7 +12,7 @@
             "line speed":2,
             "head alpha":.7,
             "tail alpha":.25,
-            "tail length": 50
+            "tail length": 150
         };
 
         _p.isLocking = true;
@@ -78,14 +78,14 @@
 
 
         /** public methods **/
-        _p.createNode = function(position, englishName, chineseName, isOld, dayIndex)
+        _p.createNode = function(position, englishName, chineseName, isOld, cityIndex)
         {
             geometry.vertices.push(position.clone());
 
             attributes.nodeType.value.push(isOld? 1: 0);
 
 
-            var nodeLabel = new NodeLabel(_sampleDom, englishName, chineseName, isOld, dayIndex);
+            var nodeLabel = new NodeLabel(_sampleDom, englishName, chineseName, isOld, cityIndex);
 
             _nodeList.push(
                 {
@@ -335,7 +335,7 @@
 
     (function(){
 
-    window.NodeLabel = function(sample, englishName, chineseName, isOld, dayIndex)
+    window.NodeLabel = function(sample, englishName, chineseName, isOld, cityIndex)
     {
         var _p = this;
 
@@ -361,7 +361,7 @@
         dom.className = "city_label";
         $(".city_label_layer").append(dom);
 
-        var imageDom = CityLabels.getCityLabelDom(dayIndex);
+        var imageDom = CityLabels.getCityLabelDom(cityIndex);
         //$(imageDom).css("margin-left", -$(imageDom).width() *.5);
         $(dom).append(imageDom);
 
@@ -375,7 +375,7 @@
                 if(NodeMap.instance.isLocking) return;
                 if($(dom).has(event.relatedTarget).length || event.relatedTarget == dom) return;
 
-                Main.detailMap.show(dayIndex);
+                Main.detailMap.show(cityIndex);
 
             });
 
@@ -392,7 +392,7 @@
             {
                 if(NodeMap.instance.isLocking) return;
 
-                SceneAnime.instance.toDetailMode(dayIndex);
+                SceneAnime.instance.toDetailMode(cityIndex);
 
             });
         }

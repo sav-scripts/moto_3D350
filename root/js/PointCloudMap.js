@@ -5,7 +5,7 @@
 
     "use strict";
 
-    window.PointCloudMap = function(_mapData, _scene)
+    window.PointCloudMap = function(_mapData, _scene, cb)
     {
         var _p = this;
 
@@ -60,8 +60,7 @@
                 mapHeight:          { type:"f", value:_mapData.height},
                 introProgress:      { type:"f", value: 1},
                 globalTurnSpeed:    { type:"f", value: .1},
-                opacity:            { type:"f", value: 1},
-                spreadProgress:     { type:"f", value: 1}
+                opacity:            { type:"f", value: 1}
             };
 
             var attributes = _p.attributes = {
@@ -70,6 +69,7 @@
                 alpha:          { type: 'f', value: [] },
                 randomSeed:     { type: 'f', value: [] },
                 isEdge:         { type: "f", value: [] },
+                isSP:           { type: "f", value: [] },
                 floatCenter:    { type: "v3", value: [] }
 
             };
@@ -98,18 +98,23 @@
 
 
 
-            var geometry = _p.geometry = getGeometry();
+            //var geometry = _p.geometry = getGeometry();
 
-            resetDotSize();
+            getGeometry(function(geometry)
+            {
+                _p.geometry = geometry;
+                resetDotSize();
 
-            _p.object3D = new THREE.PointCloud(geometry, material);
-            _scene.add(_p.object3D);
+                _p.object3D = new THREE.PointCloud(geometry, material);
+
+                cb.apply();
+            });
 
 
 
 
 
-            function getGeometry()
+            function getGeometry(cb)
             {
                 var geometry = new THREE.Geometry();
 
@@ -122,8 +127,26 @@
 
                 var imageData = _mapData.ctx.getImageData(0,0,imageWidth,imageHeight);
 
+                /*
                 for(var h=0;h<imageHeight;h+=1)
                 {
+                    calculateRow(h);
+                }
+                */
+
+                var h = 0;
+
+
+
+
+                //return geometry;
+
+                calculateRow();
+
+
+                function calculateRow()
+                {
+                    //console.log("calculate: " + h);
                     for(var w=0;w<imageWidth;w+=1)
                     {
                         //var color = imageData.data[(h*imageWidth+w)*4];
@@ -134,15 +157,17 @@
                         {
                             var index = geometry.vertices.length;
                             var isEdge = testEdge(w, h);
+                            //var isEdge = false;
+
                             var isSp = false;
 
                             if(!isEdge)
                             {
-                                /*
-                                var random = Math.random();
-                                if(random > .35)  continue;
-                                else if(random > .3) isSp = true;
-                                */
+
+                                 var random = Math.random();
+                                 if(random > .35)  continue;
+                                 else if(random > .3) isSp = true;
+
 
                                 if(Math.random() > .3) continue;
                             }
@@ -159,11 +184,13 @@
                             vertex.y = ty;
                             vertex.z = 0;
 
+
                             if(isSp)
                             {
                                 vertex.z = -500 + parseInt(Math.random()*1000);
                                 vertex.multiplyScalar(1 + Math.random());
                             }
+
 
                             geometry.vertices[index] = vertex;
 
@@ -178,19 +205,29 @@
                             attributes.randomSeed.value.push(Math.random());
                             attributes.isEdge.value.push(isEdge? 1: 0);
                             attributes.floatCenter.value.push(new THREE.Vector3(0, 0, -1));
+                            attributes.isSP.value.push(isSp? 1: 0);
+
+                            attributes.size.value.push(Math.easeInQuart(Math.random() *.9 + .1, 0, 1, 1) * window.devicePixelRatio);
+
                             //attributes.uv3.value.push(uv);
 
                         }
                     }
+
+                    h ++;
+
+                    if(h >= imageHeight)
+                    {
+
+                        console.log("vertices count = " + geometry.vertices.length);
+                        cb.apply(null, [geometry]);
+                    }
+                    else
+                    {
+                        setTimeout(calculateRow, .1);
+                        //calculateRow();
+                    }
                 }
-
-                console.log("vertices count = " + geometry.vertices.length);
-
-
-
-
-                return geometry;
-
 
 
                 function testEdge(w, h)
@@ -218,6 +255,8 @@
 
         function resetDotSize()
         {
+            return;
+
             var i;
 
             if(_p.settings["dot initialize"] == 0)

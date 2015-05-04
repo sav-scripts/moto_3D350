@@ -57,7 +57,7 @@
             height: height,
             width: width,
             videoId: videoId,
-            playerVars: { 'controls': 0, showinfo: 0, start:0 },
+            playerVars: { controls: 1, showinfo: 0, start:0, autoplay:1, autoHide:1 },
             events: {
                 'onReady': onPlayerReady
                 //'onStateChange': onPlayerStateChange
