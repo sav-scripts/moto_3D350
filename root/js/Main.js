@@ -30,25 +30,53 @@
     {
         Main.currentMode = "route";
 
+        IndexIntro.hideSwitchButton();
         NodeMap.instance.switchLabels(false, .6, function()
         {
             NodeMap.instance.switchLabels(true,.6);
             NodeMap.instance.changeLabelMode(false);
 
-            _p.fitCameraWithRouteCitys();
+
+            _p.fitCameraWithRouteCitys(function()
+            {
+                IndexIntro.showSwitchButton();
+            });
         });
 
     };
 
-    _p.toVoteMode = function()
+    _p.toVoteMode = function(skipSwitchLabel)
     {
         Main.currentMode = "vote";
 
-        NodeMap.instance.changeLabelMode(true);
-        SceneAnime.instance.switchMapContent(true);
+        IndexIntro.hideSwitchButton();
 
-        //Main.viewToCurrentCity();
-        Main.viewToCurrentCity();
+        var duration = skipSwitchLabel? 0: .6;
+
+        NodeMap.instance.switchLabels(false, duration, function()
+        {
+            NodeMap.instance.changeLabelMode(true);
+            SceneAnime.instance.switchMapContent(true);
+
+
+            //Main.viewToCurrentCity();
+            _p.viewToCurrentCity(function()
+            {
+                IndexIntro.showSwitchButton();
+            });
+        });
+    };
+
+    _p.recoverFromDetail = function()
+    {
+        if(_p.currentMode == "vote")
+        {
+            _p.viewToCurrentCity();
+        }
+        else
+        {
+            _p.fitCameraWithRouteCitys();
+        }
     };
 
     _p.viewToCurrentCity = function(cb)
@@ -86,16 +114,22 @@
 
         CameraControl.instance.lookTo(targetPosition,.5, function()
         {
-            _p.fitCameraWithCitys(Main.routeCitys, 450, cb);
+
+            _p.fitCameraWithCitys(Main.routeCitys, cb, testFunc);
+
+            function testFunc(newDistance)
+            {
+                return (newDistance > 450)? 450: newDistance;
+            }
         });
     };
 
     _p.fitCameraWithVoteCitys = function(cb)
     {
-        _p.fitCameraWithCitys(Main.optionCitys, null, cb);
+        _p.fitCameraWithCitys(Main.optionCitys, cb);
     };
 
-    _p.fitCameraWithCitys = function(cityArray, cameraDistance, cb)
+    _p.fitCameraWithCitys = function(cityArray, cb, testFunc)
     {
         var i, cityObj, positions = [];
         for(i=0;i<cityArray.length;i++)
@@ -105,12 +139,22 @@
             positions.push(cityObj.position);
         }
 
-        if(cameraDistance == null) cameraDistance = CameraControl.instance.values.distance;
-        var newDistance = MyThreeHelper.getCameraDistanceForPositions(positions, cameraDistance, window.innerWidth - 60, window.innerHeight - 140);
+        var oldCameraDistance = CameraControl.instance.values.distance;
+        var newDistance = MyThreeHelper.getCameraDistanceForPositions(positions, oldCameraDistance, window.innerWidth - 40, window.innerHeight - 140);
 
-        //console.log("new Distance = " + newDistance);
+        console.log("old distance = " + oldCameraDistance);
+        console.log("new Distance = " + newDistance);
 
-        if(newDistance != cameraDistance)
+        //if(newDistance <  targetDistance)
+
+        //console.log("new ")
+
+        //if(newDistance != oldCameraDistance)
+
+        if(testFunc) newDistance = testFunc(newDistance);
+
+
+        if(newDistance != oldCameraDistance)
         {
             TweenMax.to(CameraControl.instance.values, 1, {distance:newDistance, ease:Power1.easeInOut, onComplete:function()
             {

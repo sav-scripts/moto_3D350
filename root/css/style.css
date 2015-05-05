@@ -147,6 +147,24 @@ canvas {
     background-position: 0 0;
 
 }
+.index_switch_button{
+    position: absolute;
+    width: 123px;
+    height:51px;
+    background:url(../images/inside_btn01.png) 0 -60px no-repeat;
+
+    bottom:105px;
+    left:50%;
+    margin-left: -62px;
+    z-index: 1001;
+
+    cursor: pointer;
+
+    display: none;
+}
+.index_switch_button:hover{
+    background-position: 0 0;
+}
 
 /** city **/
 .city_label_layer{

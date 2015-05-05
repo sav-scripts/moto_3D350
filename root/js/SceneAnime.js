@@ -53,31 +53,51 @@
             //_p.toFirstCut();
 
             var pauseDuration = 3;
-            var twistDuration = .9;
+            var twistDuration = 1.9;
 
             IntroText.object3D.visible = true;
+
+            IntroText.uniforms.twistPower.value = 1;
 
             var tl0 = _introTL = new TimelineMax();
 
 
             tl0.to(_cameraControl.values,2, {distance:900, ease:Power1.easeInOut});
             tl0.to(_pointMap.object3D.position, 1, {y:100, ease:Power1.easeIn},1);
-            tl0.to(IntroText.uniforms.opacity,.8, {value:1, ease:Power1.easeIn} ,1.8);
 
-            tl0.to(IntroText.uniforms.twistPower, twistDuration, {value:2, ease:Power1.easeIn}, "+=" + pauseDuration);
-            tl0.to(IntroText.uniforms.opacity, twistDuration, {value:0, ease:Power1.easeIn} , "-=" + twistDuration);
+            tl0.to(IntroText.uniforms.opacity, twistDuration, {value:1, ease:Power1.easeOut} ,1.3);
+
+            tl0.to(IntroText.uniforms.twistPower,twistDuration, {value:0, ease:Power1.easeOut} ,1.3);
+
+
+            tl0.to(IntroText.uniforms.twistPower, twistDuration, {value:-1, ease:Power1.easeIn}, "+=" + pauseDuration);
+
+            /*
+            var tl2 = new TimelineMax({repeat:-1});
+            tl2.to(IntroText.uniforms.twistPower, 1, {value:1, ease:Linear.easeNone});
+            tl2.to(IntroText.uniforms.twistPower, 1, {value:0, ease:Linear.easeNone});
+            */
+
+            //return;
+
+            //tl0.to(IntroText.uniforms.opacity, twistDuration, {value:-1, ease:Power1.easeIn} , "-=" + twistDuration);
 
             tl0.add(function()
             {
                 IntroText.changeText(1);
-                IntroText.uniforms.twistPower.value = -2;
+                IntroText.uniforms.twistPower.value = 1;
             });
 
             tl0.to(IntroText.uniforms.twistPower, twistDuration, {value:0, ease:Power1.easeOut});
-            tl0.to(IntroText.uniforms.opacity, twistDuration, {value:1, ease:Power1.easeOut} , "-=" + twistDuration);
+            //tl0.to(IntroText.uniforms.opacity, twistDuration, {value:1, ease:Power1.easeOut} , "-=" + twistDuration);
 
-            tl0.to(IntroText.uniforms.twistPower, twistDuration, {value:2, ease:Power1.easeIn}, "+=" + pauseDuration);
-            tl0.to(IntroText.uniforms.opacity, twistDuration, {value:0, ease:Power1.easeIn} , "-=" + twistDuration);
+            tl0.to(IntroText.uniforms.twistPower, twistDuration, {value:-1, ease:Power1.easeIn}, "+=" + pauseDuration);
+            //tl0.to(IntroText.uniforms.opacity, twistDuration, {value:0, ease:Power1.easeIn} , "-=" + twistDuration);
+
+            tl0.add(function()
+            {
+                IntroText.object3D.visible = false;
+            });
 
 
             //return;
@@ -139,6 +159,8 @@
             _nodeMap.switchLabels(false,.5);
             MyThreeHelper.tweenOpacity(GuideLine.instance.object3D, 0, 1);
 
+            IndexIntro.hideSwitchButton();
+
             GuideLine.instance.deactiveLights();
 
             var duration0 = _cameraControl.lookingCenter.length() / 350;
@@ -155,9 +177,9 @@
 
 
             var tl = new TimelineMax();
-            tl.to(_cameraControl.lookingCenter,duration0, {x:0, y:0, z:0, ease:Power1.easeInOut});
-            tl.to(_cameraControl.values,.7, {distance: obj.distance, ease:Power1.easeIn});
-            tl.to(_cameraControl.cameraInitPosition,.7, {y: -.001, ease:Power1.easeOut});
+            tl.to(_cameraControl.lookingCenter,.7, {x:0, y:0, z:0, ease:Power1.easeInOut}, 0);
+            tl.to(_cameraControl.values,.7, {distance: obj.distance, ease:Power1.easeIn}, 0);
+            tl.to(_cameraControl.cameraInitPosition,.7, {y: -.001, ease:Power1.easeOut}, 0);
 
             tl.to(DetailMap.instance.uniforms.scale,.7, {value:1}, "-=.4");
             tl.to(DetailMap.instance.uniforms.softPower,.7, {value:0}, "-=.7");
@@ -175,8 +197,8 @@
         _p.backToMap = function()
         {
             var tl = new TimelineMax();
-            tl.to(_cameraControl.cameraInitPosition,.7, {y: -600, ease:Power1.easeIn});
-            tl.to(_cameraControl.values,.7, {distance: 800, ease:Power1.easeOut});
+            tl.to(_cameraControl.cameraInitPosition,.7, {y: -600, ease:Power1.easeIn}, 0);
+            // tl.to(_cameraControl.values,.7, {distance: 800, ease:Power1.easeOut}, 0);
             tl.add(function()
             {
 
@@ -189,6 +211,8 @@
 
                 MyThreeHelper.tweenOpacity(GuideLine.instance.object3D, 1, 1);
 
+                IndexIntro.showSwitchButton();
+
                 _nodeMap.switchLabels(true,.7);
 
                 _cameraControl.unlock();
@@ -199,7 +223,8 @@
 
                 TimelineUI.show();
 
-                Main.viewToCurrentCity();
+                //Main.viewToCurrentCity();
+                Main.recoverFromDetail();
 
             });
         };

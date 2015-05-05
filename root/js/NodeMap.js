@@ -429,7 +429,7 @@
 
                 if(Main.currentMode == "vote")
                 {
-                    Main.toRouteMode();
+                    // Main.toRouteMode();
                 }
                 else
                 {

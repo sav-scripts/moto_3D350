@@ -18,7 +18,7 @@
         console.log("camera distance = " + cameraDistance);
 
 
-        var newDistance = _p.getCameraDistanceForPositions([position], cameraDistance, true);
+        var newDistance = _p.getCameraDistanceForPositions([position], true);
 
         TweenMax.to(CameraControl.instance.values,.5, {distance:newDistance});
     };
@@ -34,7 +34,8 @@
         var h = viewHeight * .5;
         //var array = [];
 
-        var newDistance = currentDistance;
+        //var newDistance = currentDistance;
+        var newDistance = isGetMin? 10000000000: 0;
 
         for(var i=0;i<positions.length;i++)
         {

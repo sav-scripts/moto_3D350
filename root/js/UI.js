@@ -473,6 +473,7 @@
     var doms = {};
 
     var _isHiding = true;
+    var _isSwitchHiding = true;
 
     _p.init = function()
     {
@@ -480,6 +481,7 @@
         doms.cover = $(".index_intro_cover")[0];
         doms.text = $(".index_intro_text")[0];
         doms.button = $(".index_intro_button")[0];
+        doms.switchButton = $(".index_switch_button")[0];
 
         $(doms.container).css("display", "none");
 
@@ -495,7 +497,7 @@
 
                     _p.hide(function()
                     {
-                        Main.toVoteMode();
+                        Main.toVoteMode(true);
                         //Main.toRouteMode();
                     });
                 });
@@ -511,6 +513,18 @@
                 Main.toVoteMode();
             });
             */
+        });
+
+        $(doms.switchButton).on("click", function()
+        {
+           if(Main.currentMode == "vote")
+           {
+               Main.toRouteMode();
+           }
+            else
+           {
+               Main.toVoteMode();
+           }
         });
     };
 
@@ -543,6 +557,34 @@
 
     };
 
+    _p.showSwitchButton = function(cb)
+    {
+        if(!_isSwitchHiding) return;
+        _isSwitchHiding = false;
+
+        $(doms.switchButton).css("display", "block");
+        TweenMax.killTweensOf(doms.switchButton);
+        TweenMax.set(doms.switchButton, {alpha:0});
+        TweenMax.to(doms.switchButton,.6, {alpha:1, onComplete:function()
+        {
+            if(cb) cb.apply();
+        }});
+
+
+    };
+
+    _p.hideSwitchButton = function(cb)
+    {
+        if(_isSwitchHiding) return;
+        _isSwitchHiding = true;
+
+        TweenMax.killTweensOf(doms.switchButton);
+        TweenMax.to(doms.switchButton,.6, {alpha:0, onComplete:function()
+        {
+            $(doms.switchButton).css("display", "none");
+            if(cb) cb.apply();
+        }});
+    };
 
 
 }());
