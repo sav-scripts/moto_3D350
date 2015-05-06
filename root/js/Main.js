@@ -13,6 +13,8 @@
         videoHeight: 720,
         videoWidthBleed: 20,
         videoHeightBleed: 180,
+        currentCityIndex: 0,
+        eventProgress: 0,
         currentMode: ""
     };
 
@@ -39,7 +41,7 @@
 
             _p.fitCameraWithRouteCitys(function()
             {
-                IndexIntro.showSwitchButton();
+                IndexIntro.showSwitchButton(true);
             });
         });
 
@@ -62,7 +64,7 @@
             //Main.viewToCurrentCity();
             _p.viewToCurrentCity(function()
             {
-                IndexIntro.showSwitchButton();
+                IndexIntro.showSwitchButton(false);
             });
         });
     };
@@ -81,6 +83,8 @@
 
     _p.viewToCurrentCity = function(cb)
     {
+        //TweenMax.to(CameraControl.instance.values,.5, {distance: CameraControl.instance.settings.standard});
+
         _p.viewToCity(_p.currentCityIndex, function()
         {
             _p.fitCameraWithVoteCitys(cb);
@@ -218,12 +222,18 @@
         applySetting();
 
         var appId = "1384405598556258";
+        if(window.location.host == 'test-aeon3d350.sp88.tw') appId = '1384627348534083';
+        if(window.location.host == 'local.savorks.com') appId = '1384627715200713';
+
         //SavFB.init(appId);
         FBHelper.init(appId, execute);
 
 
         function execute()
         {
+            //Rule.init();
+            InputForm.init();
+
             getWorldMapData(function()
             {
                 ShaderLoader.load(["misc", "point_cloud_map", "guide_line", "node_map", "detail_map"], function()
@@ -238,6 +248,9 @@
                                 TimelineUI.init();
                                 TopUI.init();
                                 IndexIntro.init();
+                                Products.init();
+                                Rule.init();
+
                                 build();
                             });
                         });
@@ -256,6 +269,8 @@
 
         /** test **/
         Main.currentData = window.FakeData.get_vote_data.recive_data;
+
+        Main.eventProgress = parseInt(Main.currentData.day);
 
         if(cb) cb.apply();
     };
@@ -539,7 +554,7 @@
 
             if(i == routeArray.length-1)
             {
-                Main.currentCityIndex = cityIndex;
+                _p.currentCityIndex = cityIndex;
                 centerIndex = citys.length - 1;
             }
         }
@@ -760,6 +775,10 @@
             _cameraControl.values.distance = obj.distance;
 
         }
+
+        Products.onResize();
+        Rule.onResize();
+        InputForm.onResize();
 
         TimelineUI.onResize();
 

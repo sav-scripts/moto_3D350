@@ -58,18 +58,24 @@
         {
             $(_menuDom).trigger("mouseout");
            //closeMenu();
+
+            InputForm.show();
         });
 
         $(Doms.btnRule).on("click", function()
         {
             $(_menuDom).trigger("mouseout");
             //closeMenu();
+
+            Rule.show();
         });
 
         $(Doms.btnProduct).on("click", function()
         {
             $(_menuDom).trigger("mouseout");
             //closeMenu();
+
+            Products.show();
         });
 
     };
@@ -102,6 +108,12 @@
         TweenMax.to(Doms.btnFB,.6, {marginRight: 0}, .3);
         TweenMax.to(Doms.btnRule,.6, {marginRight: 0}, .3);
         TweenMax.to(Doms.btnProduct,.6, {marginRight: 0},.3);
+
+        if(window.innerWidth < 440)
+        {
+            //TweenMax.to(Doms.logo, .6, {left: -250});
+            TweenMax.to(Doms.logo, .6, {marginTop: -40});
+        }
     }
 
     function closeMenu()
@@ -113,6 +125,13 @@
         TweenMax.to(Doms.btnRule,.6, {marginRight: -250});
         TweenMax.to(Doms.btnProduct,.6, {marginRight: -250});
         TweenMax.to(Doms.menuIcon,.6, {marginRight: 0},.6);
+
+
+        if(window.innerWidth < 440)
+        {
+            //TweenMax.to(Doms.logo, .6, {left: 0});
+            TweenMax.to(Doms.logo, .6, {marginTop: 0});
+        }
     }
 
 }());
@@ -148,6 +167,8 @@
 
     var _timeLabel;
 
+    var _timeLabelDefaultText = "3D-350抵台時間<br/>";
+
 
     _p.init = function()
     {
@@ -174,7 +195,7 @@
         _timeLabel = document.createElement("div");
         _timeLabel.className = "time_label";
         _timelineDom.appendChild(_timeLabel);
-        TweenMax.set(_timeLabel, {rotation:-70, transformOrigin:"left top", alpha:0});
+        TweenMax.set(_timeLabel, {rotation:-70, transformOrigin:"left 50%", alpha:0});
 
         var timeLabelTl = new TimelineMax({repeat:-1});
         timeLabelTl.add(function()
@@ -191,7 +212,7 @@
             var sec = String(parseInt((dMileSec%_minuteMileSec)/1000) + 100).substr(1);
             var mSec = String(dMileSec%1000 + 1000).substr(1);
 
-            _timeLabel.innerHTML = hour + ":" + minute + ":" + sec + ":" + mSec;
+            _timeLabel.innerHTML = _timeLabelDefaultText + hour + ":" + minute + ":" + sec + ":" + mSec;
 
         },.033);
 
@@ -346,6 +367,7 @@
 
         $(".progress_line").css("width", percent + "%");
         $(".progress_line_head").css("left", percent + "%");
+        $(".progress_line_head_2").css("left", percent + "%");
 
         $(_timeLabel).css("left", percent + "%");
 
@@ -493,7 +515,7 @@
                 {
                     FBHelper.uname = response.name;
 
-                    console.log("fb uid: " + FBHelper.uid + ", uname: " + FBHelper.uname);
+                    //console.log("fb uid: " + FBHelper.uid + ", uname: " + FBHelper.uname);
 
                     _p.hide(function()
                     {
@@ -557,10 +579,12 @@
 
     };
 
-    _p.showSwitchButton = function(cb)
+    _p.showSwitchButton = function(isVoteMode, cb)
     {
         if(!_isSwitchHiding) return;
         _isSwitchHiding = false;
+
+        $(doms.switchButton).toggleClass("mode2", isVoteMode == true);
 
         $(doms.switchButton).css("display", "block");
         TweenMax.killTweensOf(doms.switchButton);

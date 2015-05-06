@@ -7,7 +7,7 @@
 
     window.PointCloudMap = function(_mapData, _scene, cb)
     {
-        var _p = this;
+        var _p = window.PointCloudMap.instance = this;
 
         _p.uniforms = null;
         _p.attributes = null;

@@ -477,6 +477,7 @@
                                 if (response && response.post_id)
                                 {
                                     console.log("share complete");
+                                    InputForm.show();
                                 }
                                 else
                                 {

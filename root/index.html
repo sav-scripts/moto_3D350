@@ -5,7 +5,6 @@
     <title>AEON 3D-350</title>
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 
-    <link rel="stylesheet" type="text/css" href="css/style.css" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
@@ -21,6 +20,9 @@
 
     <script src="js/lib/Utility.0.0.9.js"></script>
 
+    <link rel="stylesheet" type="text/css" href="js/simple_scroller/simple_scroller.css" />
+    <script src="js/simple_scroller/simple_scroller.0.0.5.js"></script>
+
     <script src="js/lib/stats.min.js"></script>
     <script src="js/CameraControl.js"></script>
     <script src="js/ShaderLoader.js"></script>
@@ -33,12 +35,17 @@
     <script src="js/SceneAnime.js"></script>
     <script src="js/VideoPlayer.js"></script>
     <script src="js/UI.js"></script>
+    <script src="js/Popups.js"></script>
+    <script src="api/fakedata.js"></script>
+    <script src="js/FBHelper.js"></script>
+    <script src="js/lib/FormHelper.0.0.4.js"></script>
+
     <script src="js/Main.js"></script>
+
     <script src="js/city_data.js"></script>
 
-    <script src="api/fakedata.js"></script>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
 
-    <script src="js/FBHelper.js"></script>
     <!--script src="js/SavFB-1.0.5.js"></script-->
 
 
@@ -66,14 +73,11 @@
 
     </div>
 
-    <video id="video" style="display:none; position:absolute; z-index:1000; ">
-        <source src="textures/film.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
-    </video>
-
     <div class="timeline_layer">
         <div class="baseline"></div>
         <div class="progress_line"></div>
         <div class="progress_line_head"></div>
+        <div class="progress_line_head_2"></div>
         <div class="node_part"></div>
         <!--
         <div class="timeline_node_past"></div>
@@ -96,6 +100,112 @@
     <div class="index_switch_button"></div>
 
     <div id="fb-root"></div>
+
+    <div class="product_layer">
+        <div class="container">
+
+            <div class="product_image"></div>
+            <div class="product_image"></div>
+            <div class="product_image"></div>
+            <div class="product_image"></div>
+            <div class="product_image"></div>
+            <div class="product_image"></div>
+            <div class="product_image"></div>
+
+            <div class="product_button_part">
+                <div class="product_button"></div>
+                <div class="product_button"></div>
+                <div class="product_button"></div>
+                <div class="product_button"></div>
+                <div class="product_button"></div>
+                <div class="product_button"></div>
+                <div class="product_button"></div>
+            </div>
+
+            <div class="btn_close"></div>
+
+        </div>
+    </div>
+
+    <div class="rule_layer">
+        <div class="container">
+
+            <div class="rule_content">
+                <div class="rule_text"></div>
+            </div>
+
+            <div class="rule_vertical_text"></div>
+            <div class="btn_close"></div>
+
+        </div>
+    </div>
+
+    <div class="form_layer">
+
+        <div class="inner_black"></div>
+        <div class="container">
+
+            <div class="form_title"></div>
+
+            <div class="field_container">
+
+
+                <div class="row_name">
+                    <label for="form_name">姓  名</label>
+                    <input type="text" name="textfield" id="form_name" class="input_style" />
+                </div>
+
+                <div class="row_phone">
+                    <label for="form_phone">電  話</label>
+                    <input type="text" name="textfield" id="form_phone" class="input_style" maxlength="10"/>
+                </div>
+
+                <div class="row_email">
+                    <label for="form_email">E-mail</label>
+                    <input type="text" name="textfield" id="form_email" class="input_style" />
+                </div>
+
+                <div class = "row_address_select">
+                    <label for="form_name">地  址</label>
+                    <table border="0" cellspacing="0" cellpadding="0">
+                        <tr>
+                            <td width="79">
+                                <label for="form_county"></label><select class="form_input_select" name="year" id="form_county">
+                                    <option>縣市</option>
+                                </select>
+                            </td>
+                            <td width="10"></td>
+                            <td width="79">
+                                <label for="form_zone"></label><select class="form_input_select" name="month" id="form_zone">
+                                    <option>鄉鎮</option>
+                                </select>
+                            </td>
+                        </tr>
+
+                    </table>
+
+                    <label for="form_address"></label><!--input type="text" name="textfield" id="form_address" class="input_style" /-->
+                    <textarea  name="textfield" id="form_address" class="input_style">sfsdf</textarea>
+                </div>
+
+
+                <div class="row_check">
+                    <input type="checkbox" name="vehicle" value="Bike">
+                    <div class="check_box_text">
+                        我已詳讀<span class="form_rule_link">權利義務之相關條款</span>，並同意遵守
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="btn_send"></div>
+
+            <div class="btn_close"></div>
+
+
+        </div>
+    </div>
 
 </body>
 </html>

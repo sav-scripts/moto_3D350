@@ -43,6 +43,7 @@
         _objectControl.add("s", values, "distance", moveSpeed, options);
         */
 
+        /*
         _objectControl.add("w", _scene.rotation, "x",.1);
         _objectControl.add("s", _scene.rotation, "x", -.1);
 
@@ -53,6 +54,7 @@
         _objectControl.add("down", cameraInitPosition, "z", -10);
         _objectControl.add("left", cameraInitPosition, "x", -10);
         _objectControl.add("right", cameraInitPosition, "x", 10);
+        */
 
 
         /** public methods **/

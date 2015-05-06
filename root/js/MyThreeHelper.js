@@ -18,10 +18,55 @@
         console.log("camera distance = " + cameraDistance);
 
 
-        var newDistance = _p.getCameraDistanceForPositions([position], true);
+        var radians = _p.getFovRadians(camera);
 
-        TweenMax.to(CameraControl.instance.values,.5, {distance:newDistance});
+
+        // vFOV is degree here
+        /*
+        var vFOV = camera.fov;
+        var height = 2 * Math.tan( Math.PI * vFOV / 360 ) * cameraDistance;
+
+        var aspect = camera.aspect;
+        //var hFOV = 2 * Math.atan( Math.tan( Math.PI * vFOV / 360 ) * aspect );
+        var hFOV_arc = 2 * Math.atan( Math.tan(  Math.PI * vFOV / 360  ) * aspect );
+        //console.log("hFov = " + hFOV);
+        var width  = 2 * Math.tan( hFOV_arc / 2 ) * cameraDistance;
+
+
+
+        */
+
+
+
+
+        var screenPosition = _p.worldToScreen(position, renderer, camera);
+
+        console.log("screen position = " + screenPosition.x + ", " + screenPosition.y);
+        console.log(_p.getCameraDistanceForLength(radians.h, screenPosition.x - window.innerWidth *.5));
+
+
+        /*
+        var pp = toCameraCoords(position);
+
+        console.log("pp = " + pp.x + ", " + pp.y + ", " + pp.z);
+        console.log("test = " + _p.getCameraDistanceForLength(radians.h, pp.x*2));
+
+        var pp2 = toCameraCoords(CameraControl.instance.lookingCenter);
+
+
+        console.log("pp2 = " + pp2.x + ", " + pp2.y + ", " + pp2.z);
+        console.log("test2 = " + _p.getCameraDistanceForLength(radians.h, pp2.x*2));
+        */
+
+
+
+        //TweenMax.to(CameraControl.instance.values,.5, {distance:newDistance});
     };
+
+    function toCameraCoords(position) {
+        //return camera.matrixWorldInverse.multiplyVector3(position.clone());
+        return position.clone().applyMatrix4(camera.matrixWorldInverse);
+    }
 
     _p.getCameraDistanceForPositions = function(positions, currentDistance, viewWidth, viewHeight, isGetMin, renderer, camera)
     {

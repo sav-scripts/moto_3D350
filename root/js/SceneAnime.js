@@ -58,15 +58,15 @@
             IntroText.object3D.visible = true;
 
             IntroText.uniforms.twistPower.value = 1;
+            //IntroText.uniforms.opacity.value = 1;
 
             var tl0 = _introTL = new TimelineMax();
 
 
-            tl0.to(_cameraControl.values,2, {distance:900, ease:Power1.easeInOut});
+            tl0.to(_cameraControl.values,2, {distance:1100, ease:Power1.easeInOut});
             tl0.to(_pointMap.object3D.position, 1, {y:100, ease:Power1.easeIn},1);
 
             tl0.to(IntroText.uniforms.opacity, twistDuration, {value:1, ease:Power1.easeOut} ,1.3);
-
             tl0.to(IntroText.uniforms.twistPower,twistDuration, {value:0, ease:Power1.easeOut} ,1.3);
 
 

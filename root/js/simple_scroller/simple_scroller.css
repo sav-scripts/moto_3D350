@@ -1,0 +1,68 @@
+@charset "utf-8";
+/* CSS Document */
+.ss_dom{
+	position:absolute;
+}
+.ss_content{
+	position:absolute;
+}
+.ss_container{
+	position:absolute;
+	overflow:hidden;
+}
+.ss_scroll_container{
+	position:absolute;
+	width:30px;
+	/*background:#f00;*/
+}
+.ss_scrollbase{
+	position:absolute;
+	z-index:0;
+	left:50%;
+	width:1px;
+    background-color:#747474;
+}
+.ss_scrollbar_container{
+	position:absolute;
+	width:100%;
+	z-index:1;
+	cursor:pointer;
+}
+.ss_scrollbar{
+	position:absolute;
+	background:#747474;
+	left:50%;
+	width:7px;
+	margin-left:-3px;
+}
+.ss_scrollbar:hover, .ss_scrollbar.hover{
+	background: #9a9a9a;
+}
+.ss_button_up{
+	position:absolute;
+	background:url(UI.png);
+	width:20px;
+	margin-left:-10px;
+	left:50%;
+	height:30px;
+	margin-top:-30px;
+	cursor:pointer;
+	background-position:20px top;
+}
+.ss_button_up:hover{
+	background-position:20px bottom;
+}
+.ss_button_down{
+	position:absolute;
+	background:url(UI.png);
+	width:20px;
+	margin-left:-10px;
+	left:50%;
+	height:30px;
+	top:100%;
+	margin-top:0px;
+	cursor:pointer;
+}
+.ss_button_down:hover{
+	background-position:0px bottom;
+}

@@ -17,16 +17,17 @@
         var _isHiding = true;
 
 
-        var video = _p.video = document.getElementById( 'video' );
+        /* var video = _p.video = document.getElementById( 'video' );
 
         var videoTexture = new THREE.VideoTexture( video );
         videoTexture.minFilter = THREE.LinearFilter;
         videoTexture.magFilter = THREE.LinearFilter;
         videoTexture.format = THREE.RGBFormat;
+        */
 
         _p.imageTextures =
         [
-            videoTexture,
+            THREE.ImageUtils.loadTexture( "images/image_day_4.jpg" ),
             THREE.ImageUtils.loadTexture( "images/image_test.png" ),
             THREE.ImageUtils.loadTexture( "images/image_day_7.jpg" ),
             THREE.ImageUtils.loadTexture( "images/image_day_3.jpg" ),
@@ -119,10 +120,12 @@
             _p.object3D.visible = true;
             _p.uniforms.opacity.value = 0;
 
-            if(index == 0) _p.video.play();
+            //if(index == 0) _p.video.play();
 
             TweenMax.killTweensOf(_p.uniforms.opacity);
             TweenMax.to(_p.uniforms.opacity,.6, {value:_p.settings.opacity});
+
+            TweenMax.to(PointCloudMap.instance.uniforms.innerAlpha,.6, {value:1});
 
         };
 
@@ -131,9 +134,12 @@
             if(_isHiding) return;
             _isHiding = true;
 
-            if(_p.currentIndex == 0) _p.video.pause();
+            //if(_p.currentIndex == 0) _p.video.pause();
 
             TweenMax.killTweensOf(_p.uniforms.opacity);
+
+            TweenMax.to(PointCloudMap.instance.uniforms.innerAlpha,.6, {value:PointCloudMap.instance.settings["inner alpha"]});
+
             TweenMax.to(_p.uniforms.opacity,.6, {value:.0, onComplete:function()
             {
                 _p.object3D.visible = false;
