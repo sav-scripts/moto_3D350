@@ -9,7 +9,7 @@
 
         _p.settings =
         {
-            "base map alpha":.03
+            "base map alpha":.015
         };
 
         //var texture = new THREE.Texture(_mapData.image);

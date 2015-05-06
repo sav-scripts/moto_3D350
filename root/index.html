@@ -3,7 +3,14 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title>AEON 3D-350</title>
+    <link rel="icon" href="misc/fb_icon_16.jpg" type="image/x-icon">
     <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+    <meta property="og:caption" content="宏佳騰3D-350 即將在台登場！" />
+    <meta property="og:description" content="搶先看新車專屬配備，猜猜環遊世界騎士的下一站？還有機會獲得宏佳騰萬元購車金！" />
+    <meta property="og:image" content="http://test-aeon3d350.sp88.tw/misc/fb_share.jpg" />
+
+
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r71/three.js"></script>
@@ -14,9 +21,9 @@
 
     <script src="js/lib/hammer.min.js"></script>
 
-    <script src="js/lib/dat.gui.min.js"></script>
+    <!--script src="js/lib/dat.gui.min.js"></script-->
     <script src="js/lib/jquery.mousewheel.min.js"></script>
-    <script src="js/lib/OrbitControls.js"></script>
+    <!--script src="js/lib/OrbitControls.js"></script-->
 
     <script src="js/lib/Utility.0.0.9.js"></script>
 
@@ -40,6 +47,12 @@
     <script src="js/FBHelper.js"></script>
     <script src="js/lib/FormHelper.0.0.4.js"></script>
 
+    <script src="js/simple_preloading/SimplePreloading.0.0.7.js"></script>
+    <link rel="stylesheet" type="text/css" href="js/simple_preloading/SimplePreloading.css" />
+
+    <script src="js/lib/soundjs-0.5.2.min.js"></script>
+    <script src="js/SoundPlayer.js"></script>
+
     <script src="js/Main.js"></script>
 
     <script src="js/city_data.js"></script>
@@ -48,11 +61,39 @@
 
     <!--script src="js/SavFB-1.0.5.js"></script-->
 
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-51459968-3', 'auto');
+        ga('send', 'pageview');
+
+    </script>
 
 </head>
 <body onload="Main.init();">
 
     <div class="loading_icon"></div>
+    <div id="no_webgl">您的瀏覽器不支援 WebGL, 請使用較新的瀏覽器瀏覽本網站.</div>
+
+    <script>
+
+        window.__supportWebGL = ( function () { try { var canvas = document.createElement( 'canvas' ); return !! ( window.WebGLRenderingContext && ( canvas.getContext( 'webgl' ) || canvas.getContext( 'experimental-webgl' ) ) ); } catch ( e ) { return false; } } )();
+
+        if(!window.__supportWebGL)
+        {
+            var dom = document.getElementById("no_webgl");
+            dom.style.display = "block";
+
+            var dom2 = document.getElementsByClassName("loading_icon")[0];
+            dom2.style.display = "none";
+            //alert("您的瀏覽器不支援 WebGL, 請使用較新的瀏覽器瀏覽本網站.");
+        }
+
+    </script>
+
 
     <div class="logo"></div>
     <div class="menu">
@@ -79,6 +120,7 @@
         <div class="progress_line_head"></div>
         <div class="progress_line_head_2"></div>
         <div class="node_part"></div>
+        <div class="sound_icon"></div>
         <!--
         <div class="timeline_node_past"></div>
         <div class="timeline_node_now"></div>
@@ -93,8 +135,10 @@
     </div>
 
     <div class="confirm_dialog">
-        <div class="btn_yes"></div>
-        <div class="btn_no"></div>
+        <div class="container">
+            <div class="btn_yes"></div>
+            <div class="btn_no"></div>
+        </div>
     </div>
 
     <div class="index_switch_button"></div>
@@ -190,7 +234,7 @@
 
 
                 <div class="row_check">
-                    <input type="checkbox" name="vehicle" value="Bike">
+                    <input type="checkbox" class="check_box">
                     <div class="check_box_text">
                         我已詳讀<span class="form_rule_link">權利義務之相關條款</span>，並同意遵守
                     </div>

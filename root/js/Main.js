@@ -15,6 +15,7 @@
         videoHeightBleed: 180,
         currentCityIndex: 0,
         eventProgress: 0,
+        finalDay: 7,
         currentMode: ""
     };
 
@@ -33,15 +34,22 @@
         Main.currentMode = "route";
 
         IndexIntro.hideSwitchButton();
+
+        NodeMap.instance.switchLineAlpha(1, 0);
+
         NodeMap.instance.switchLabels(false, .6, function()
         {
             NodeMap.instance.switchLabels(true,.6);
             NodeMap.instance.changeLabelMode(false);
 
 
+
             _p.fitCameraWithRouteCitys(function()
             {
-                IndexIntro.showSwitchButton(true);
+                if(Main.eventProgress < Main.finalDay)
+                {
+                    IndexIntro.showSwitchButton(true);
+                }
             });
         });
 
@@ -54,6 +62,8 @@
         IndexIntro.hideSwitchButton();
 
         var duration = skipSwitchLabel? 0: .6;
+
+        NodeMap.instance.switchLineAlpha(.2, 1);
 
         NodeMap.instance.switchLabels(false, duration, function()
         {
@@ -118,7 +128,6 @@
 
         CameraControl.instance.lookTo(targetPosition,.5, function()
         {
-
             _p.fitCameraWithCitys(Main.routeCitys, cb, testFunc);
 
             function testFunc(newDistance)
@@ -138,7 +147,9 @@
         var i, cityObj, positions = [];
         for(i=0;i<cityArray.length;i++)
         {
-            cityObj = Main.optionCitys[i];
+            cityObj = cityArray[i];
+
+            //cityObj = Main.optionCitys[i];
 
             positions.push(cityObj.position);
         }
@@ -146,8 +157,8 @@
         var oldCameraDistance = CameraControl.instance.values.distance;
         var newDistance = MyThreeHelper.getCameraDistanceForPositions(positions, oldCameraDistance, window.innerWidth - 40, window.innerHeight - 140);
 
-        console.log("old distance = " + oldCameraDistance);
-        console.log("new Distance = " + newDistance);
+        //console.log("old distance = " + oldCameraDistance);
+        //console.log("new Distance = " + newDistance);
 
         //if(newDistance <  targetDistance)
 
@@ -156,6 +167,9 @@
         //if(newDistance != oldCameraDistance)
 
         if(testFunc) newDistance = testFunc(newDistance);
+
+        newDistance = Math.max(CameraControl.instance.settings.min, newDistance);
+        newDistance = Math.min(CameraControl.instance.settings.max, newDistance);
 
 
         if(newDistance != oldCameraDistance)
@@ -217,7 +231,11 @@
     /** init **/
     Main.init = function()
     {
-        if(Utility.urlParams.showui == "1") _showui = true;
+        if(!window.__supportWebGL) return;
+
+        //if(Utility.urlParams.showui == "1") _showui = true;
+
+        SimplePreloading.init();
 
         applySetting();
 
@@ -251,7 +269,11 @@
                                 Products.init();
                                 Rule.init();
 
+                                SoundPlayer.initSound();
+                                //SoundPlayer.switchBGM(false);
+
                                 build();
+                                start();
                             });
                         });
                     });
@@ -261,6 +283,62 @@
 
 
         VideoPlayer.init();
+
+        function start()
+        {
+            _p.render();
+
+            if(Utility.urlParams.skipintro == 1)
+            {
+                introComplete();
+            }
+            else
+            {
+                _sceneAnime.toFirstCut();
+                triggerIntro();
+            }
+
+            function triggerIntro(event)
+            {
+                if(event && event.target != _renderer.domElement) return;
+
+                $(window).unbind("mousedown", triggerIntro);
+                _sceneAnime.playIntro(introComplete);
+            }
+
+            function introComplete()
+            {
+                _scene.remove(IntroText.object3D);
+
+                $(window).on("mousedown", onMousedown);
+                $(window).on("mousemove", onMousemove);
+
+                _p.guideLine.activeLights();
+
+                _nodeMap.isLocking = false;
+
+                TimelineUI.show();
+                TopUI.show();
+
+                SoundPlayer.playBGM();
+
+
+
+                SceneAnime.instance.switchMapContent(false, 0);
+
+                if(Main.eventProgress < Main.finalDay)
+                {
+                    IndexIntro.show();
+                }
+                else
+                {
+                    Main.toRouteMode();
+
+                    MyThreeHelper.tweenOpacity(_nodeMap.linkLine.object3D, 1,.7);
+                    MyThreeHelper.tweenOpacity(_nodeMap.object3D, 1,.7);
+                }
+            }
+        }
     };
 
     function getVoteData(cb)
@@ -268,11 +346,60 @@
         //var url = "../document/server_api
 
         /** test **/
-        Main.currentData = window.FakeData.get_vote_data.recive_data;
 
-        Main.eventProgress = parseInt(Main.currentData.day);
+        if(window.location.host == "local.savorks.com")
+        {
 
-        if(cb) cb.apply();
+            Main.currentData = window.FakeData.get_vote_data.recive_data;
+
+            Main.eventProgress = parseInt(Main.currentData.day);
+
+            if(cb) cb.apply();
+        }
+        else
+        {
+            //var url = Utility.getPath() + "api/get_vote_data.ashx";
+            var url = "api/get_vote_data.ashx";
+            var method = "POST";
+            var params = {};
+
+            //SimplePreloading.setProgress("");
+            //SimplePreloading.show();
+
+            $.ajax
+            ({
+                url: url,
+                type: method,
+                data: params,
+                dataType: "json"
+            })
+            .done(function(response)
+            {
+                //if(closeLoading || (closeLoading == null && _defaultCloseLoading)) SimplePreloading.hide();
+
+                console.log("response = " + JSON.stringify(response));
+
+                if(response.res == "ok")
+                {
+                    Main.currentData = response;
+
+                    Main.eventProgress = parseInt(Main.currentData.day);
+
+                    if(cb) cb.apply();
+                }
+                else
+                {
+                    alert(response.res);
+                }
+                //SimplePreloading.hide();
+
+            })
+            .fail(function()
+            {
+                alert("無法取得伺服器資料");
+                //SimplePreloading.hide();
+            });
+        }
     };
 
     function build()
@@ -311,63 +438,9 @@
             "show city name": true
         };
 
-        _datGUI = new dat.GUI();
         /*
-        _datGUI = new dat.GUI(
-            {
-                load:{
-            "remembered": {
-                "Default": {
-                    "0": {
-                        "dot initialize": 1,
-                        "dot color": "#ffffff",
-                        "dot scale": 9.9,
-                        "dot texture": 1,
-                        "float speed": 0.05,
-                        "float scale": 2,
-                        "inner alpha": 0.5,
-                        "outer alpha": 0
-                    }
-                },
-                "Setting A": {
-                    "0": {
-                        "dot initialize": 0,
-                        "dot color": "#ffffff",
-                        "dot scale": 1.5,
-                        "dot texture": 0,
-                        "float speed": 0.05,
-                        "float scale": 1,
-                        "inner alpha": 0.24260255195829905,
-                        "outer alpha": 0.9080133828389575
-                    }
-                }
-            },
-            "preset": "Default",
-            "closed": true,
-            "folders": {
-                "Basic": {
-                    "preset": "Default",
-                    "closed": true,
-                    "folders": {}
-                },
-                "Point Cloud Map": {
-                    "preset": "Default",
-                    "closed": true,
-                    "folders": {}
-                },
-                "Node Link Line": {
-                    "preset": "Default",
-                    "closed": true,
-                    "folders": {}
-                },
-                "camera": {
-                    "preset": "Default",
-                    "closed": true,
-                    "folders": {}
-                }
-            }
-        }});
-        */
+        _datGUI = new dat.GUI();
+
 
         if(!_showui) $(_datGUI.domElement).detach();
         setupTrace();
@@ -383,9 +456,10 @@
         });
 
         trace("pixel ratio = " + window.devicePixelRatio);
+        */
 
         _p.detailMap = new DetailMap(_mapData);
-        _p.detailMap.setupGUI(_datGUI);
+        //_p.detailMap.setupGUI(_datGUI);
         _scene.add(_p.detailMap.object3D);
 
 
@@ -404,12 +478,12 @@
         setupMouseTestPlane();
 
 
-        _pointMap.setupGUI(_datGUI);
+        //_pointMap.setupGUI(_datGUI);
         _scene.add(_pointMap.object3D);
 
 
         _nodeMap = new NodeMap(_scene, _renderer, _camera);
-        _nodeMap.setupGUI(_datGUI);
+        //_nodeMap.setupGUI(_datGUI);
 
         setupNodes();
 
@@ -450,52 +524,10 @@
         window.addEventListener("resize", onWindowResize, false);
         onWindowResize();
 
-        render();
-
 
         /** start **/
 
-
-        if(Utility.urlParams.skipintro == 1)
-        {
-            introComplete();
-        }
-        else
-        {
-            _sceneAnime.toFirstCut();
-            triggerIntro();
-
-            //$(window).on("mousedown", triggerIntro);
-        }
-
-        function triggerIntro(event)
-        {
-            if(event && event.target != _renderer.domElement) return;
-
-            $(window).unbind("mousedown", triggerIntro);
-            _sceneAnime.playIntro(introComplete);
-        }
-
-        function introComplete()
-        {
-            _scene.remove(IntroText.object3D);
-
-            $(window).on("mousedown", onMousedown);
-            $(window).on("mousemove", onMousemove);
-
-            _p.guideLine.activeLights();
-
-            _nodeMap.isLocking = false;
-
-            TimelineUI.show();
-            TopUI.show();
-
-
-
-            SceneAnime.instance.switchMapContent(false, 0);
-
-            IndexIntro.show();
-        }
+        _p.render = render;
 
         function render()
         {
@@ -529,6 +561,12 @@
 
         var routeArray = Main.currentData.event_route;
 
+        if(routeArray.length != Main.eventProgress)
+        {
+            alert("event route length not matching with days !");
+            return;
+        }
+
         var centerIndex;
 
         var i, cityIndex, obj, optionObj, totalVotes = 0, voteWeight, cityObj;
@@ -543,13 +581,13 @@
             var nodeType = "route";
             if(i == routeArray.length-1) nodeType = "current";
 
-            cityObj = addCity(new THREE.Vector3(obj.position.x, obj.position.y, 0), obj.name_en, obj.name_ch, nodeType, cityIndex);
+            cityObj = addCity(new THREE.Vector3(obj.position.x, obj.position.y, 0), obj.name_en, obj.name_ch, nodeType, cityIndex, (i+1));
             citys.push(cityObj);
             Main.routeCitys.push(cityObj);
 
             if(i > 0)
             {
-                addLink(i-1, i, 30, true);
+                addLink(i-1, i, 130, true);
             }
 
             if(i == routeArray.length-1)
@@ -575,11 +613,11 @@
 
             obj = Main.city_data[cityIndex];
 
-            cityObj = addCity(new THREE.Vector3(obj.position.x, obj.position.y, 0), obj.name_en, obj.name_ch, "voteOption", cityIndex, obj.num_votes, voteWeight);
+            cityObj = addCity(new THREE.Vector3(obj.position.x, obj.position.y, 0), obj.name_en, obj.name_ch, "voteOption", cityIndex, null, obj.num_votes, voteWeight);
             citys.push(cityObj);
             Main.optionCitys.push(cityObj);
 
-            var numLinks = 20 + parseInt(500 * voteWeight);
+            var numLinks = 100 + parseInt(400 * voteWeight);
 
             addLink(centerIndex, citys.length-1, numLinks);
 
@@ -587,10 +625,10 @@
         }
 
 
-        function addCity(position, englishName, chineseName, nodeType, cityIndex, votes, voteWeight)
+        function addCity(position, englishName, chineseName, nodeType, cityIndex, dayIndex, votes, voteWeight)
         {
             var obj = {position: position, votes:votes, voteWeight:voteWeight};
-            _nodeMap.createNode(position, englishName, chineseName, nodeType, cityIndex);
+            _nodeMap.createNode(position, englishName, chineseName, nodeType, cityIndex, dayIndex);
 
             return obj;
         }
@@ -614,16 +652,6 @@
         {
             obj.debug = message;
         };
-    }
-
-    function rotateAroundObjectAxis(object, axis, radians)
-    {
-        var rotObjectMatrix;
-        rotObjectMatrix = new THREE.Matrix4();
-        rotObjectMatrix.makeRotationAxis(axis.normalize(), radians);
-
-        object.matrix.multiply(rotObjectMatrix);
-        object.rotation.setFromRotationMatrix(object.matrix);
     }
 
     function setupMouseTestPlane()
@@ -651,9 +679,11 @@
             var mat4 = _testPlane.matrixWorld.clone();
             mat4 = mat4.getInverse(mat4);
 
+            _pointMap.uniforms.lastMouseMoveTime.value = _pointMap.uniforms.time.value;
             _projectedMouse = point.applyMatrix4(mat4);
         }
         */
+
     }
 
     function onMousedown(event)
@@ -680,6 +710,8 @@
 
                 //console.log("point = " + point.x + ", " + point.y);
 
+
+                _pointMap.uniforms.lastMouseMoveTime.value = _pointMap.uniforms.time.value;
                 _projectedMouse = point.clone().applyMatrix4(mat4);
 
                 //console.log("projectedMouse = " + _projectedMouse.x + ", " + _projectedMouse.y + ", " + _projectedMouse.z);
@@ -779,6 +811,7 @@
         Products.onResize();
         Rule.onResize();
         InputForm.onResize();
+        TopUI.onResize();
 
         TimelineUI.onResize();
 
@@ -832,6 +865,7 @@
         _stats.domElement.style.position = 'absolute';
         _stats.domElement.style.top = '0px';
         _stats.domElement.style.zIndex = 999;
+
         if(_showui) document.body.appendChild( _stats.domElement );
     }
 

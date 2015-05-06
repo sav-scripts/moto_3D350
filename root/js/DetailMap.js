@@ -11,7 +11,7 @@
         {
             "opacity":.9,
             "mask power": .0,
-            "scale": 3
+            "scale": 2
         };
 
         var _isHiding = true;
@@ -27,13 +27,13 @@
 
         _p.imageTextures =
         [
-            THREE.ImageUtils.loadTexture( "images/image_day_4.jpg" ),
-            THREE.ImageUtils.loadTexture( "images/image_test.png" ),
-            THREE.ImageUtils.loadTexture( "images/image_day_7.jpg" ),
-            THREE.ImageUtils.loadTexture( "images/image_day_3.jpg" ),
-            THREE.ImageUtils.loadTexture( "images/image_day_6.jpg" ),
-            THREE.ImageUtils.loadTexture( "images/image_day_2.jpg" ),
-            THREE.ImageUtils.loadTexture( "images/image_day_4.jpg" )
+            THREE.ImageUtils.loadTexture( "images/video_bg_01.jpg" ),
+            THREE.ImageUtils.loadTexture( "images/video_bg_02.jpg" ),
+            THREE.ImageUtils.loadTexture( "images/video_bg_03.jpg" ),
+            THREE.ImageUtils.loadTexture( "images/video_bg_04.jpg" ),
+            THREE.ImageUtils.loadTexture( "images/video_bg_05.jpg" ),
+            THREE.ImageUtils.loadTexture( "images/video_bg_06.jpg" ),
+            THREE.ImageUtils.loadTexture( "images/video_bg_07.jpg" )
         ];
 
         for(var i=0;i<_p.imageTextures.length;i++)

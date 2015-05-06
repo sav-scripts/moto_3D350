@@ -151,6 +151,8 @@
         {
             _cameraControl.lock();
 
+            TimelineUI.muteSound();
+
             NodeMap.instance.isLocking = true;
             CameraControl.instance.isLocking = true;
 
@@ -159,7 +161,7 @@
             _nodeMap.switchLabels(false,.5);
             MyThreeHelper.tweenOpacity(GuideLine.instance.object3D, 0, 1);
 
-            IndexIntro.hideSwitchButton();
+            if(Main.eventProgress < Main.finalDay) IndexIntro.hideSwitchButton();
 
             GuideLine.instance.deactiveLights();
 
@@ -211,7 +213,7 @@
 
                 MyThreeHelper.tweenOpacity(GuideLine.instance.object3D, 1, 1);
 
-                IndexIntro.showSwitchButton();
+                if(Main.eventProgress < Main.finalDay) IndexIntro.showSwitchButton();
 
                 _nodeMap.switchLabels(true,.7);
 
@@ -225,6 +227,9 @@
 
                 //Main.viewToCurrentCity();
                 Main.recoverFromDetail();
+
+
+                TimelineUI.recoverSound();
 
             });
         };

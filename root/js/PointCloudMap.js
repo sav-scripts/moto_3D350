@@ -18,7 +18,7 @@
             "dot color": "#ffffff",
             "dot initialize": 1,
             "dot scale": 9.9,
-            "dot texture": 0,
+            "dot texture": 1,
             "float speed":.05,
             "float scale":2,
             "inner alpha":.5,
@@ -48,10 +48,11 @@
             var uniforms = _p.uniforms =
             {
                 time:               { type: "f", value:0 },
+                lastMouseMoveTime:  { type: "f", value:0 },
                 floatScale:         { type: "f", value: _p.settings["float scale"] },
                 dotScale:           { type: "f", value: _p.settings["dot scale"] },
                 dotColor:           { type: "v3", value: new THREE.Vector3(1,1,1) },
-                texture:            { type: "t", value: _p.dotTextures[0] },
+                texture:            { type: "t", value: _p.dotTextures[1] },
                 screenMouse:        { type:"v2", value: new THREE.Vector2() },
                 projectedMouse:     { type:"v3", value: new THREE.Vector3() },
                 innerAlpha:         { type:"f", value: _p.settings["inner alpha"] },
@@ -408,7 +409,6 @@
 
             //console.log("count = " + count);
         };
-
 
 
     };

@@ -7,13 +7,17 @@
     {
         settings:
         {
-            verticalModeWidth: 770
+            verticalModeWidth: 770,
+            buttonWidth: 374,
+            cityIndex: -1
         }
     };
 
     var _isHiding = true;
     var _isInit = false;
     var _inVerticalMode = false;
+
+
 
     var doms = {};
 
@@ -27,9 +31,12 @@
 
         doms.container = $(".form_layer")[0];
         doms.fieldContainer = $(".field_container")[0];
-        doms.btnClose = $(".form_layer .btn_close")[0];
         doms.checkBoxText = $(".check_box_text")[0];
         doms.title = $(".form_layer .form_title")[0];
+        doms.btnClose = $(".form_layer .btn_close")[0];
+        doms.btnSend = $(".form_layer .btn_send")[0];
+        doms.checkBox = $(".form_layer .check_box")[0];
+        doms.ruleText = $(".form_rule_link")[0];
 
         fields.name = $("#form_name")[0];
         fields.phone = $("#form_phone")[0];
@@ -38,8 +45,9 @@
 
         doms.title.init =
         {
-            w:$(doms.title).width(),
-            h:$(doms.title).height()
+            w:369,
+            h:85,
+            ratio: 85/369
         };
 
         $(doms.btnClose).on("click", function()
@@ -47,12 +55,24 @@
            _p.hide();
         });
 
+        $(doms.btnSend).on("click", function()
+        {
+           trySend();
+        });
+
+        $(doms.ruleText).on("click", function()
+        {
+            _p.hide();
+            Rule.show(_p.show);
+        });
     };
 
-    _p.show = function()
+    _p.show = function(clearForm)
     {
         if(!_isHiding) return;
         _isHiding = false;
+
+        if(clearForm) resetForm();
 
         $(doms.container).css("display", "block");
 
@@ -91,7 +111,7 @@
 
 
             var minTitleWidth = doms.title.init.w + 40;
-            var ratio = doms.title.init.h / doms.title.init.w;
+            var ratio = doms.title.init.ratio;
 
             if (width < minTitleWidth)
             {
@@ -102,20 +122,167 @@
                 $(doms.title).css("width", "").css("height", "");
             }
 
+            if(width < _p.settings.buttonWidth)
+            {
+                $(doms.btnSend).css("margin-left", "");
+            }
+            else
+            {
+                $(doms.btnSend).css("margin-left", (width - _p.settings.buttonWidth) *.5 + "px");
+            }
+
         }
         else
         {
             _inVerticalMode = true;
 
-
-
             $(doms.fieldContainer).css('width', "");
             $(fields.address).css('width', "");
             $(doms.checkBoxText).css('width', "");
+
+            $(doms.btnSend).css("margin-left", "");
         }
 
 
     };
+
+    /** private  methods **/
+    function trySend(cb)
+    {
+        var obj = checkForm();
+
+        if(obj)
+        {
+            obj.fb_id = FBHelper.uid;
+            obj.fb_name = FBHelper.uname;
+            obj.voted_city = _p.cityIndex;
+            obj.day = Main.eventProgress;
+
+            console.log(JSON.stringify(obj));
+
+            doSend(obj);
+        }
+    }
+
+    function doSend(params, cb)
+    {
+        SimplePreloading.setProgress("");
+        SimplePreloading.show();
+        //var url = "../document/server_api
+
+        /** test **/
+
+        if(window.location.host == "local.savorks.com")
+        {
+            SimplePreloading.hide();
+        }
+        else
+        {
+            var url = "api/send_vote.ashx";
+            var method = "POST";
+
+            //SimplePreloading.setProgress("");
+            //SimplePreloading.show();
+
+            $.ajax
+            ({
+                url: url,
+                type: method,
+                data: params,
+                dataType: "json"
+            })
+            .done(function (response)
+            {
+                //if(closeLoading || (closeLoading == null && _defaultCloseLoading)) SimplePreloading.hide();
+
+                console.log("response = " + JSON.stringify(response));
+
+                if (response.res == "ok")
+                {
+                    alert("資料送出成功, 感謝您參加活動.");
+                    InputForm.hide();
+                    Main.toRouteMode();
+                }
+                else
+                {
+                    alert(response.res);
+                }
+                SimplePreloading.hide();
+
+            })
+            .fail(function ()
+            {
+                alert("無法取得伺服器資料");
+                SimplePreloading.hide();
+            });
+        }
+    }
+
+    function resetForm()
+    {
+        $(doms.checkBox).attr("checked", false);
+
+        $(fields.name).val("");
+        $(fields.phone).val("");
+        $(fields.email).val("");
+        $(fields.address).val("");
+
+        $("#form_county").prop("selectedIndex", 0);
+        FormHelper.completeZone($("#form_county"), $("#form_zone"));
+    }
+
+    function checkForm()
+    {
+        console.log("checked = " + $(doms.checkBox).is(":checked"));
+        if(!$(doms.checkBox).is(":checked")){ alert('您必須先閱讀並同意活動辦法'); return; }
+
+        var formObj={};
+        var dom;
+
+        dom = fields.name;
+        if(PatternSamples.onlySpace.test(dom.value))
+        {
+            alert('請輸入您的名稱'); dom.focus(); return;
+        }else formObj.real_name = dom.value;
+
+        dom = fields.phone;
+        if(!PatternSamples.phone.test(dom.value))
+        {
+            alert('請輸入正確的手機號碼'); dom.focus(); return;
+        }
+        else formObj.phone = dom.value;
+
+        dom = fields.email;
+        if(!PatternSamples.email.test(dom.value))
+        {
+            alert('請輸入正確的電子信箱'); dom.focus(); return;
+        }
+        else formObj.email = dom.value;
+
+
+        dom = fields.address;
+        if(PatternSamples.onlySpace.test(dom.value))
+        {
+            alert('請輸入您的地址'); dom.focus(); return;
+        }
+        else formObj.address = dom.value;
+
+        var addressObj = FormHelper.getAddressValue($("#form_county"), $("#form_zone"));
+
+        if(addressObj.county && addressObj.zone)
+        {
+            formObj.county = addressObj.county;
+            formObj.zone = addressObj.zone;
+        }
+        else
+        {
+            alert('請選擇您居住的區域'); return;
+        }
+
+
+        return formObj;
+    }
+
 
 }());
 
@@ -319,11 +486,11 @@
 
         doms.verticalText.init =
         {
-            w:$(doms.verticalText).width(),
-            h:$(doms.verticalText).height()
+            w:393,
+            h:117
         };
 
-        _ss = new SimpleScroller($(".rule_content")[0], null, null, true).update();
+        _ss = new SimpleScroller($(".rule_content")[0], 1497, null, true).update();
         _ss.scrollBound(673, -15, 0, 488).update(true);
 
         $(doms.btnClose).click(function()
@@ -354,16 +521,17 @@
         if(_isHiding) return;
         _isHiding = true;
 
+        if(_cb_after_hide)
+        {
+            _cb_after_hide.apply();
+            _cb_after_hide = null;
+        }
+
         TweenMax.killTweensOf(doms.container);
         TweenMax.to(doms.container,.6, {alpha:0, onComplete:function()
         {
             $(doms.container).css("display", "none");
 
-            if(_cb_after_hide)
-            {
-                _cb_after_hide.apply();
-                _cb_after_hide = null;
-            }
         }});
 
     };

@@ -10,6 +10,8 @@
     var _isOpen = false;
     var _isHiding = true;
 
+    var _isPermOpemMode = false;
+
     var Doms = {};
 
     _p.init = function()
@@ -31,23 +33,12 @@
         });
         */
 
-        $(_menuDom).on("mouseout", function(event)
-        {
-            if($(_menuDom).has(event.relatedTarget).length || event.relatedTarget == _menuDom) return;
 
-            closeMenu();
+        $(Doms.logo).on("click", function()
+        {
+            window.open("http://www.aeonmotor.com.tw/home.php", "_blank");
         });
 
-        $(Doms.menuIcon).on("click", function()
-        {
-           openMenu();
-        });
-
-
-        $(Doms.menuIcon).on("mouseover", function()
-        {
-            openMenu();
-        });
 
 
         TweenMax.set(Doms.btnFB, {marginRight: -250});
@@ -59,7 +50,14 @@
             $(_menuDom).trigger("mouseout");
            //closeMenu();
 
-            InputForm.show();
+            //InputForm.show(true);
+
+            FB.ui({
+                method: 'share',
+                href: window.location.href
+            }, function(response){});
+
+
         });
 
         $(Doms.btnRule).on("click", function()
@@ -77,6 +75,8 @@
 
             Products.show();
         });
+
+        _p.onResize(true);
 
     };
 
@@ -99,15 +99,61 @@
 
     };
 
-    function openMenu()
+    _p.onResize = function(isFirstRun)
+    {
+        var wasPermOpenMode = _isPermOpemMode;
+
+        _isPermOpemMode = !(window.innerWidth < 480);
+
+        if(isFirstRun || wasPermOpenMode != _isPermOpemMode)
+        {
+            if(_isPermOpemMode)
+            {
+                $(_menuDom).unbind("mouseout");
+                $(Doms.menuIcon).unbind("mouseover").unbind("click");
+                $(_menuDom).unbind("mouseout");
+
+                openMenu(0);
+            }
+            else
+            {
+
+                $(_menuDom).on("mouseout", function(event)
+                {
+                    if($(_menuDom).has(event.relatedTarget).length || event.relatedTarget == _menuDom) return;
+
+                    closeMenu();
+                });
+
+                $(Doms.menuIcon).on("click", function()
+                {
+                    openMenu();
+                });
+
+
+                $(Doms.menuIcon).on("mouseover", function()
+                {
+                    openMenu();
+                });
+
+                closeMenu();
+
+            }
+        }
+
+    };
+
+    function openMenu(duration)
     {
         if(_isOpen) return;
         _isOpen = true;
 
-        TweenMax.to(Doms.menuIcon,.6, {marginRight: -250});
-        TweenMax.to(Doms.btnFB,.6, {marginRight: 0}, .3);
-        TweenMax.to(Doms.btnRule,.6, {marginRight: 0}, .3);
-        TweenMax.to(Doms.btnProduct,.6, {marginRight: 0},.3);
+        if(duration == null) duration = .6;
+
+        TweenMax.to(Doms.menuIcon,duration, {marginRight: -250});
+        TweenMax.to(Doms.btnFB,duration, {marginRight: 0}, .3);
+        TweenMax.to(Doms.btnRule,duration, {marginRight: 0}, .3);
+        TweenMax.to(Doms.btnProduct,duration, {marginRight: 0},.3);
 
         if(window.innerWidth < 440)
         {
@@ -169,6 +215,11 @@
 
     var _timeLabelDefaultText = "3D-350抵台時間<br/>";
 
+    var _soundDom;
+
+    var _isSoundOn = true;
+    var _wasSoundOn = true;
+
 
     _p.init = function()
     {
@@ -178,11 +229,18 @@
 
         $nodePart = $(".node_part");
 
+        _soundDom = $(".sound_icon")[0];
 
+        $(_soundDom).on("click", function()
+        {
+           _isSoundOn = !_isSoundOn;
+            updateSoundStatus();
+
+        });
 
 
         var systemTime = Main.currentData.system_time;
-        var array = systemTime.split("/");
+        var array = systemTime.split(":");
         var hh = parseInt(array[0]);
         var mm = parseInt(array[1]);
         var ss = parseInt(array[2]);
@@ -200,19 +258,28 @@
         var timeLabelTl = new TimelineMax({repeat:-1});
         timeLabelTl.add(function()
         {
-            var restDays = 7 - _eventProgress - 1;
-            var nowMileSec = _startSec * 1000 + (new Date().getTime() - _time);
+            if(Main.eventProgress < Main.finalDay)
+            {
 
-            var dMileSec = _dayMileSec - nowMileSec;
+                var restDays = 7 - _eventProgress - 1;
+                var nowMileSec = _startSec * 1000 + (new Date().getTime() - _time);
 
-            dMileSec += restDays * _dayMileSec;
+                var dMileSec = _dayMileSec - nowMileSec;
 
-            var hour = parseInt(dMileSec / _hourMileSec);
-            var minute = String(parseInt((dMileSec%_hourMileSec)/_minuteMileSec) + 100).substr(1);
-            var sec = String(parseInt((dMileSec%_minuteMileSec)/1000) + 100).substr(1);
-            var mSec = String(dMileSec%1000 + 1000).substr(1);
+                dMileSec += restDays * _dayMileSec;
 
-            _timeLabel.innerHTML = _timeLabelDefaultText + hour + ":" + minute + ":" + sec + ":" + mSec;
+                var hour = parseInt(dMileSec / _hourMileSec);
+                var minute = String(parseInt((dMileSec%_hourMileSec)/_minuteMileSec) + 100).substr(1);
+                var sec = String(parseInt((dMileSec%_minuteMileSec)/1000) + 100).substr(1);
+                var mSec = String(dMileSec%1000 + 1000).substr(1);
+
+                _timeLabel.innerHTML = _timeLabelDefaultText + hour + ":" + minute + ":" + sec + ":" + mSec;
+
+            }
+            else
+            {
+                _timeLabel.innerHTML = "GOAL!";
+            }
 
         },.033);
 
@@ -260,6 +327,7 @@
 
         function createLabelDom(cityIndex, dayIndex)
         {
+            //console.log("cityIndex = " + cityIndex + ", dayIndex = " + dayIndex);
             var labelDom = CityLabels.getSmallCityLabelDom(cityIndex);
 
             $(labelDom).css("left", targetLeft);
@@ -291,6 +359,33 @@
         }
 
     };
+
+    _p.muteSound = function()
+    {
+        _wasSoundOn = _isSoundOn;
+        _isSoundOn = false;
+        updateSoundStatus();
+    };
+
+    _p.recoverSound = function()
+    {
+        _isSoundOn = _wasSoundOn;
+        updateSoundStatus();
+    };
+
+    function updateSoundStatus()
+    {
+        if(_isSoundOn)
+        {
+            $(_soundDom).toggleClass("sound_off", false);
+        }
+        else
+        {
+            $(_soundDom).toggleClass("sound_off", true);
+        }
+
+        SoundPlayer.switchBGM(_isSoundOn);
+    }
 
     _p.show = function()
     {
@@ -350,6 +445,7 @@
         var sec = _startSec + dSec;
 
         var dayProgress = sec / _daySec * dayUnitPercent;
+        if(Main.eventProgress >= Main.finalDay) dayProgress = 0;
 
         var percent;
 
@@ -527,7 +623,7 @@
 
             }, function()
             {
-                alert("請先登入 Facebook 才能參加活動.");
+                alert("請先登入 Facebook 才能參加活動.\n facebook 測試帳號: kzyfzxc_sidhuwitz_1430913477@tfbnw.net\n 密碼: 1234");
             });
             /*
             _p.hide(function()

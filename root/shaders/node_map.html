@@ -88,6 +88,9 @@
     uniform float tailLength;
     uniform float opacity;
 
+    uniform float oldLineAlpha;
+    uniform float newLineAlpha;
+
     varying float vRandomSeed;
     varying float vProgress;
     varying float vIsOld;
@@ -96,14 +99,6 @@
     {
         float alpha;
 
-/*
-        if(vIsOld > .5)
-        {
-            alpha = .15;
-        }
-        else
-        {
-        */
             float duration = arcLength / speed;
             float vTime = mod(time + duration * vRandomSeed, duration) / duration;
             //vTime = vTime * 2.0;
@@ -127,12 +122,20 @@
 
 
             (alpha < headPosition)?  alpha *= tailAlpha: alpha *= headAlpha;
-        //}
 
-        if(vIsOld > .5) alpha *= .5;
+
+        if(vIsOld > .5)
+        {
+            alpha *= oldLineAlpha;
+         }
+         else
+         {
+            alpha *= newLineAlpha;
+        }
 
 
         gl_FragColor = vec4(1.0, 1.0, 1.0, alpha * opacity);
+
 
     }
 

@@ -8,13 +8,13 @@
 
     var _videoList =
     {
-        "0": "JKZ27ZPMrRo",
-        "1": "JKZ27ZPMrRo",
-        "2": "qtQsKa8u9cI",
-        "3": "JKZ27ZPMrRo",
-        "4": "JKZ27ZPMrRo",
-        "5": "JKZ27ZPMrRo",
-        "6": "JKZ27ZPMrRo"
+        "0": "_ZQTAYS82gY",
+        "1": "_ZQTAYS82gY",
+        "2": "_ZQTAYS82gY",
+        "3": "_ZQTAYS82gY",
+        "4": "_ZQTAYS82gY",
+        "5": "_ZQTAYS82gY",
+        "6": "_ZQTAYS82gY"
     };
 
     var _coverDom = document.createElement("div");
@@ -59,8 +59,8 @@
             videoId: videoId,
             playerVars: { controls: 1, showinfo: 0, start:0, autoplay:1, autoHide:1 },
             events: {
-                'onReady': onPlayerReady
-                //'onStateChange': onPlayerStateChange
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
             }
         });
 
@@ -80,17 +80,24 @@
             }});
          }
 
-        /*
-         var done = false;
+
+         //var done = false;
          function onPlayerStateChange(event)
          {
+             /*
              if (event.data == YT.PlayerState.PLAYING && !done)
              {
                  //setTimeout(stopVideo, 6000);
                  //done = true;
              }
+             */
+             if(event.data == YT.PlayerState.ENDED)
+             {
+                 closeVideo();
+             }
          }
 
+        /*
 
          function stopVideo() {
             player.stopVideo();

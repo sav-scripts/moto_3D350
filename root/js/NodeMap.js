@@ -71,21 +71,25 @@
         */
 
         _p.object3D = new THREE.PointCloud(geometry, material);
+        _p.object3D.visible = false;
         _scene.add(_p.object3D);
 
         var _linkLine = _p.linkLine = new LinkLine(_p.settings);
+        _linkLine.object3D.visible = false;
         _scene.add(_linkLine.object3D);
+
+        _p.switchLineAlpha = _linkLine.switchLineAlpha;
 
 
         /** public methods **/
-        _p.createNode = function(position, englishName, chineseName, nodeType, cityIndex)
+        _p.createNode = function(position, englishName, chineseName, nodeType, cityIndex, dayIndex)
         {
             geometry.vertices.push(position.clone());
 
             attributes.nodeType.value.push(nodeType == "voteOption"? 0: 1);
 
 
-            var nodeLabel = new NodeLabel(_sampleDom, englishName, chineseName, nodeType, cityIndex);
+            var nodeLabel = new NodeLabel(_sampleDom, englishName, chineseName, nodeType, cityIndex, dayIndex);
 
             _nodeList.push(
                 {
@@ -201,7 +205,9 @@
             headAlpha:  { type:"f", value: settings["head alpha"] },
             tailAlpha:  { type:"f", value: settings["tail alpha"] },
             tailLength:  { type:"f", value: settings["tail length"] },
-            opacity:    {type:"f", value:1}
+            opacity:    {type:"f", value:1},
+            oldLineAlpha:   {type:"f", value:1},
+            newLineAlpha:   {type:"f", value:1}
         };
 
         var attributes = _p.attributes =
@@ -356,6 +362,14 @@
             _p.uniforms.tailLength.value = settings["tail length"];
         };
 
+        _p.switchLineAlpha = function(oldLineAlpha, newLineAlpha, duration)
+        {
+            if(duration == null) duration = .6;
+
+            TweenMax.to(_p.uniforms.oldLineAlpha,duration, {value:oldLineAlpha});
+            TweenMax.to(_p.uniforms.newLineAlpha,duration, {value:newLineAlpha});
+        };
+
 
     };
 
@@ -366,7 +380,7 @@
 
     (function(){
 
-    window.NodeLabel = function(sample, englishName, chineseName, nodeType, cityIndex)
+    window.NodeLabel = function(sample, englishName, chineseName, nodeType, cityIndex, dayIndex)
     {
         var _p = this;
 
@@ -409,7 +423,7 @@
                 if($(dom).has(event.relatedTarget).length || event.relatedTarget == dom) return;
                 if(Main.currentMode == "vote") return;
 
-                Main.detailMap.show(cityIndex);
+                Main.detailMap.show(dayIndex-1);
 
             });
 
@@ -454,35 +468,51 @@
                         {
                             //console.log("yes");
 
-                            var urlPath = Utility.getPath();
+                            //var urlPath = Utility.getPath();
+                            var urlPath;
 
-                            var url = urlPath + "images/image_test.png";
+                            if(window.location.host == "local.savorks.com")
+                            {
+                                urlPath = Utility.getPath();
+                            }
+                            else
+                            {
+                                urlPath = window.location.protocol + "//" + window.location.host + "/";
+                            }
 
-                            console.log("urlPath = " + urlPath);
+                            var url = urlPath + "misc/fb_share.jpg";
+
+                            console.log("url = " + url);
 
                             var params =
                             {
                                 method: 'feed',
                                 name: "AEON 3D350",
                                 picture: url,
-                                caption: "caption",
-                                description: "share description",
+                                caption: "宏佳騰3D-350 即將在台登場！",
+                                description: "搶先看新車專屬配備，猜猜環遊世界騎士的下一站？還有機會獲得宏佳騰萬元購車金！",
                                 link: urlPath,
                                 ref: "share_city_" + cityIndex
                             };
+
+
+                            SimplePreloading.setProgress("");
+                            SimplePreloading.show();
 
                             FB.ui(params, function(response)
                             {
                                 //console.log("response = " + JSON.stringify(response));
                                 if (response && response.post_id)
                                 {
-                                    console.log("share complete");
-                                    InputForm.show();
+                                    InputForm.cityIndex = cityIndex;
+                                    InputForm.show(true, cityIndex);
                                 }
                                 else
                                 {
                                     alert("您必須要分享才能參加活動喔.");
                                 }
+
+                                SimplePreloading.hide();
                             });
 
                         }, function()
