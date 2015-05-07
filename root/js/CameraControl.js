@@ -24,7 +24,7 @@
             min:400,
             max:1100,
             standard: 600,
-            worldStandard: 1000
+            worldStandard: 800
         };
 
         var options =

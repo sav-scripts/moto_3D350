@@ -6,7 +6,7 @@ window.Main.city_data =
         "name_en": "Berlin",
         "name_ch": "柏林",
         "day": 0,
-        "position": {x: -35, y: 94}
+        "position": {x: -35, y: 99}
     },
     // day 1
     "1":{
@@ -14,7 +14,7 @@ window.Main.city_data =
         "name_en": "Rome",
         "name_ch": "羅馬",
         "day": 1,
-        "position": {x: -30, y: 53}
+        "position": {x: -20, y: 40}
     },
     "2":{
         "index": 2,

@@ -97,7 +97,7 @@
         //TweenMax.to(CameraControl.instance.values,.5, {distance: CameraControl.instance.settings.standard});
 
 
-        CameraControl.instance.lookTo(new THREE.Vector3(0, 0, 0), .6);
+        CameraControl.instance.lookTo(new THREE.Vector3(0, -75, 0), .6);
         CameraControl.instance.zoomTo(cb, CameraControl.instance.settings.worldStandard, .9);
 
         /*
@@ -297,6 +297,7 @@
 
             if(Utility.urlParams.skipintro == 1)
             {
+                _pointMap.uniforms.introProgress.value = 1;
                 introComplete();
             }
             else

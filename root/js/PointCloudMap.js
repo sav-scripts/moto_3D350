@@ -59,7 +59,7 @@
                 outerAlpha:         { type:"f", value: _p.settings["outer alpha"] },
                 mapWidth:           { type:"f", value:_mapData.width},
                 mapHeight:          { type:"f", value:_mapData.height},
-                introProgress:      { type:"f", value: 1},
+                introProgress:      { type:"f", value: 0},
                 globalTurnSpeed:    { type:"f", value: .1},
                 opacity:            { type:"f", value: 1}
             };
