@@ -303,10 +303,13 @@
 
             $(nodeDom).css("left", targetLeft);
 
+
+            /*
             if(i < _eventProgress)
             {
                 var cityIndex = Main.currentData.event_route[i];
                 createLabelDom(cityIndex, i);
+
             }
             else if(i == _eventProgress)
             {
@@ -317,6 +320,10 @@
                 $(labelDom).css("left", targetLeft);
                 $nodePart.append(labelDom);
             }
+            */
+
+            var cityIndex = Main.currentData.allCitys[i];
+            createLabelDom(cityIndex, i);
         }
 
 
@@ -677,6 +684,8 @@
 
     _p.showSwitchButton = function(isVoteMode, cb)
     {
+        if(cb) cb.apply();
+        /*
         if(!_isSwitchHiding) return;
         _isSwitchHiding = false;
 
@@ -689,12 +698,16 @@
         {
             if(cb) cb.apply();
         }});
+        */
 
 
     };
 
     _p.hideSwitchButton = function(cb)
     {
+        if(cb) cb.apply();
+
+        /*
         if(_isSwitchHiding) return;
         _isSwitchHiding = true;
 
@@ -704,6 +717,7 @@
             $(doms.switchButton).css("display", "none");
             if(cb) cb.apply();
         }});
+        */
     };
 
 
@@ -717,19 +731,25 @@
 
     var doms = {};
 
+
+
     _p.init = function()
     {
         doms.container = $(".confirm_dialog")[0];
         doms.btnYes = $(".confirm_dialog .btn_yes")[0];
         doms.btnNo = $(".confirm_dialog .btn_no")[0];
+        doms.text = $(".confirm_dialog .dialog_text")[0];
+        doms.cityName = $(".confirm_dialog .dialog_city_name")[0];
 
         $(doms.container).css("display", "block").detach();
     };
 
-    _p.show = function(cb_yes, cb_no, cb_complete)
+    _p.show = function(cityName, cb_yes, cb_no, cb_complete)
     {
         if(!_isHiding) return;
         _isHiding = false;
+
+        $(doms.cityName).text(cityName);
 
         $(doms.btnYes).unbind("click");
         $(doms.btnNo).unbind("click");

@@ -6,6 +6,7 @@
 
     var _p = window.VideoPlayer = {};
 
+    /*
     var _videoList =
     {
         "0": "_ZQTAYS82gY",
@@ -16,6 +17,12 @@
         "5": "_ZQTAYS82gY",
         "6": "_ZQTAYS82gY"
     };
+    */
+
+    var _videoId = "_ZQTAYS82gY";
+    //var _videoId = "mXxt8hJbelo";
+
+    var _cb_after_close;
 
     var _coverDom = document.createElement("div");
     _coverDom.className = "cover";
@@ -37,8 +44,10 @@
 
     };
 
-    _p.playVideo = function(index)
+    _p.playVideo = function(index, cb_after_close)
     {
+        _cb_after_close = cb_after_close;
+
         var dom = document.createElement("div");
         dom.id = "video_player";
 
@@ -49,14 +58,14 @@
         var width = $(dom).width();
         var height = $(dom).height();
 
-        var videoId = _videoList[index];
+        //var videoId = _videoList[index];
 
         TweenMax.set("#video_player", {alpha:0});
 
         _player = new YT.Player('video_player', {
             height: height,
             width: width,
-            videoId: videoId,
+            videoId: _videoId,
             playerVars: { controls: 1, showinfo: 0, start:0, autoplay:1, autoHide:1 },
             events: {
                 'onReady': onPlayerReady,
@@ -115,7 +124,8 @@
             _player.stopVideo();
             _player.destroy();
             $("#video_player").detach();
-            SceneAnime.instance.backToMap();
+            SceneAnime.instance.backToMap(_cb_after_close);
+            _cb_after_close = null;
         }});
     }
 

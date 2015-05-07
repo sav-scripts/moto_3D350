@@ -175,6 +175,13 @@
         if(window.location.host == "local.savorks.com")
         {
             SimplePreloading.hide();
+
+
+            alert("資料送出成功, 感謝您參加活動.");
+            InputForm.hide();
+            //Main.toRouteMode();
+            Main.toVoteMode();
+
         }
         else
         {
@@ -201,7 +208,8 @@
                 {
                     alert("資料送出成功, 感謝您參加活動.");
                     InputForm.hide();
-                    Main.toRouteMode();
+                    //Main.toRouteMode();
+                    Main.toVoteMode();
                 }
                 else
                 {

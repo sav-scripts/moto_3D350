@@ -52,8 +52,8 @@
 
             //_p.toFirstCut();
 
-            var pauseDuration = 3;
-            var twistDuration = 1.9;
+            var pauseDuration = 2.3;
+            var twistDuration = 1.5;
 
             IntroText.object3D.visible = true;
 
@@ -147,7 +147,7 @@
 
         };
 
-        _p.toDetailMode = function(index)
+        _p.toDetailMode = function(index, cb)
         {
             _cameraControl.lock();
 
@@ -189,14 +189,14 @@
             tl.add(function()
             {
                 Main.inVideoMode = true;
-                VideoPlayer.playVideo(index);
+                VideoPlayer.playVideo(index, cb);
             });
 
 
             //var sa
         };
 
-        _p.backToMap = function()
+        _p.backToMap = function(cb)
         {
             var tl = new TimelineMax();
             tl.to(_cameraControl.cameraInitPosition,.7, {y: -600, ease:Power1.easeIn}, 0);
@@ -230,6 +230,8 @@
 
 
                 TimelineUI.recoverSound();
+
+                if(cb) cb.apply();
 
             });
         };

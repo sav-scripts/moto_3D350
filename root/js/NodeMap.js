@@ -378,7 +378,7 @@
 }());
 
 
-    (function(){
+(function(){
 
     window.NodeLabel = function(sample, englishName, chineseName, nodeType, cityIndex, dayIndex)
     {
@@ -417,11 +417,135 @@
 
         if(nodeType == "route" || nodeType == "current")
         {
+            bindMouseOver();
+
+            $(dom).on("click", function()
+            {
+                if(NodeMap.instance.isLocking) return;
+
+
+                SceneAnime.instance.toDetailMode(cityIndex);
+
+                /*
+                if(Main.currentMode == "vote")
+                {
+                    // Main.toRouteMode();
+                }
+                else
+                {
+                    SceneAnime.instance.toDetailMode(cityIndex);
+                }
+                */
+
+
+            });
+        }
+        else if(nodeType == "voteOption")
+        {
+            bindMouseOver();
+
+            $(dom).on("click", function()
+            {
+                if(NodeMap.instance.isLocking) return;
+
+                //SceneAnime.instance.toDetailMode(cityIndex);
+
+
+                SceneAnime.instance.toDetailMode(cityIndex, function()
+                {
+                    if(Main.isEventComplete)
+                    {
+                        Main.viewToCurrentCity();
+                    }
+                    else
+                    {
+                        doShare();
+                    }
+                });
+
+
+
+                function doShare()
+                {
+                    Main.viewToCity(cityIndex, function()
+                    {
+                        CameraControl.instance.zoomTo(function()
+                        {
+
+
+                            ConfirmDialog.show(chineseName, function()
+                            {
+                                //console.log("yes");
+
+                                //var urlPath = Utility.getPath();
+                                var urlPath;
+
+                                if(window.location.host == "local.savorks.com")
+                                {
+                                    urlPath = Utility.getPath();
+                                }
+                                else
+                                {
+                                    urlPath = window.location.protocol + "//" + window.location.host + "/";
+                                }
+
+                                var url = urlPath + "misc/fb_share.jpg";
+
+                                console.log("url = " + url);
+
+                                var params =
+                                {
+                                    method: 'feed',
+                                    name: "AEON 3D350",
+                                    picture: url,
+                                    caption: "宏佳騰3D-350 即將在台登場！",
+                                    description: "搶先看新車專屬配備，猜猜環遊世界騎士的下一站？還有機會獲得宏佳騰萬元購車金！",
+                                    link: urlPath,
+                                    ref: "share_city_" + cityIndex
+                                };
+
+
+                                SimplePreloading.setProgress("");
+                                SimplePreloading.show();
+
+                                FB.ui(params, function(response)
+                                {
+                                    //console.log("response = " + JSON.stringify(response));
+                                    if (response && response.post_id)
+                                    {
+                                        InputForm.cityIndex = cityIndex;
+                                        InputForm.show(true, cityIndex);
+                                    }
+                                    else
+                                    {
+                                        alert("您必須要分享才能參加活動喔.");
+                                        Main.viewToCurrentCity();
+                                    }
+
+                                    SimplePreloading.hide();
+                                });
+
+                            }, function()
+                            {
+                                //console.log("no");
+                                Main.viewToCurrentCity();
+                            });
+                        });
+                    });
+                }
+
+
+            });
+
+        }
+
+        function bindMouseOver()
+        {
             $(dom).on("mouseover", function(event)
             {
                 if(NodeMap.instance.isLocking) return;
                 if($(dom).has(event.relatedTarget).length || event.relatedTarget == dom) return;
-                if(Main.currentMode == "vote") return;
+                //if(Main.currentMode == "vote") return;
 
                 Main.detailMap.show(dayIndex-1);
 
@@ -431,99 +555,10 @@
             {
                 if(NodeMap.instance.isLocking) return;
                 if($(dom).has(event.relatedTarget).length || event.relatedTarget == dom) return;
-                if(Main.currentMode == "vote") return;
+                //if(Main.currentMode == "vote") return;
 
                 Main.detailMap.hide();
-
             });
-
-            $(dom).on("click", function()
-            {
-                if(NodeMap.instance.isLocking) return;
-
-                if(Main.currentMode == "vote")
-                {
-                    // Main.toRouteMode();
-                }
-                else
-                {
-                    SceneAnime.instance.toDetailMode(cityIndex);
-                }
-
-
-            });
-        }
-        else if(nodeType == "voteOption")
-        {
-            $(dom).on("click", function()
-            {
-                if(NodeMap.instance.isLocking) return;
-
-                //SceneAnime.instance.toDetailMode(cityIndex);
-                Main.viewToCity(cityIndex, function()
-                {
-                    CameraControl.instance.zoomTo(function()
-                    {
-                        ConfirmDialog.show(function()
-                        {
-                            //console.log("yes");
-
-                            //var urlPath = Utility.getPath();
-                            var urlPath;
-
-                            if(window.location.host == "local.savorks.com")
-                            {
-                                urlPath = Utility.getPath();
-                            }
-                            else
-                            {
-                                urlPath = window.location.protocol + "//" + window.location.host + "/";
-                            }
-
-                            var url = urlPath + "misc/fb_share.jpg";
-
-                            console.log("url = " + url);
-
-                            var params =
-                            {
-                                method: 'feed',
-                                name: "AEON 3D350",
-                                picture: url,
-                                caption: "宏佳騰3D-350 即將在台登場！",
-                                description: "搶先看新車專屬配備，猜猜環遊世界騎士的下一站？還有機會獲得宏佳騰萬元購車金！",
-                                link: urlPath,
-                                ref: "share_city_" + cityIndex
-                            };
-
-
-                            SimplePreloading.setProgress("");
-                            SimplePreloading.show();
-
-                            FB.ui(params, function(response)
-                            {
-                                //console.log("response = " + JSON.stringify(response));
-                                if (response && response.post_id)
-                                {
-                                    InputForm.cityIndex = cityIndex;
-                                    InputForm.show(true, cityIndex);
-                                }
-                                else
-                                {
-                                    alert("您必須要分享才能參加活動喔.");
-                                }
-
-                                SimplePreloading.hide();
-                            });
-
-                        }, function()
-                        {
-                            //console.log("no");
-                            Main.viewToCurrentCity();
-                        });
-                    });
-                });
-            });
-
         }
 
     };

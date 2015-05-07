@@ -383,16 +383,44 @@ canvas {
     top:50%;
     z-index: 2001;
     width: 316px;
-    height:123px;
+    height:143px;
     margin-left:-158px;
-    margin-top:-60px;
+    margin-top:-70px;
+    /*
     background:url(../images/confirm_btn_bg.png);
+    */
+    border: 1px solid rgba(255, 255, 255, .3);
+}
+.dialog_city_name{
+    color:#fff;
+}
+.confirm_dialog .inner_black{
+    position: absolute;
+    width: 306px;
+    height:133px;
+    top:5px;
+    left:5px;
+
+    background: rgba(0,0,0,.85);
+}
+.confirm_dialog .dialog_text{
+    position: absolute;
+    color: #aaa;
+    font-size: 16px;
+    width: 100%;
+    top:16px;
+
+    line-height: 30px;
+
+    text-align: center;
+
+    font-family: '微軟正黑體', serif;
 }
 .confirm_dialog .btn_yes{
     position: absolute;
     left:50%;
     margin-left:-104px;
-    bottom: 41px;
+    bottom: 16px;
     width: 100px;
     height: 50px;
     background:url(../images/confirm_btn_01.png) 0 -50px;
@@ -401,7 +429,7 @@ canvas {
     position: absolute;
     left:50%;
     margin-left:4px;
-    bottom: 41px;
+    bottom: 16px;
     width: 100px;
     height: 50px;
     background:url(../images/confirm_btn_02.png) 0 -50px;

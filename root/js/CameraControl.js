@@ -22,8 +22,9 @@
         _p.settings =
         {
             min:400,
-            max:1400,
-            standard: 600
+            max:1100,
+            standard: 600,
+            worldStandard: 1000
         };
 
         var options =
@@ -91,7 +92,7 @@
             if(duration == null)
             {
                 var dDistance = Math.abs(_p.values.distance - cameraDistance);
-                var speed = 300;
+                var speed = 900;
                 duration = dDistance / speed;
             }
 

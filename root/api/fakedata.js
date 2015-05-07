@@ -23,9 +23,10 @@ window.FakeData.get_vote_data.send_data =
 window.FakeData.get_vote_data.recive_data =
 {
     "res": "ok",
-    "day": 6, // 目前活動進行日
-    "system_time": "13:36:36", // 目前系統時間 hh = 時, mm = 分, ss = 秒
-    "event_route": [0, 1, 5, 6, 7, 8], // 目前已經進行的路徑, 數值對應到 city_data.js 中的個別城市的 index
+    "day": 7, // 目前活動進行日
+    "system_time": "13:36:36" // 目前系統時間 hh = 時, mm = 分, ss = 秒
+    //"event_route": [0, 1, 5, 6, 7, 8], // 目前已經進行的路徑, 數值對應到 city_data.js 中的個別城市的 index
+    /*
     "options":
     [
 
@@ -35,4 +36,5 @@ window.FakeData.get_vote_data.recive_data =
 
 
     ]
+    */
 };

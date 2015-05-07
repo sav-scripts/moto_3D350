@@ -16,7 +16,8 @@
         currentCityIndex: 0,
         eventProgress: 0,
         finalDay: 7,
-        currentMode: ""
+        currentMode: "",
+        isEventComplete: false
     };
 
     _p.getVideoViewSetting = function()
@@ -95,10 +96,16 @@
     {
         //TweenMax.to(CameraControl.instance.values,.5, {distance: CameraControl.instance.settings.standard});
 
+
+        CameraControl.instance.lookTo(new THREE.Vector3(0, 0, 0), .6);
+        CameraControl.instance.zoomTo(cb, CameraControl.instance.settings.worldStandard, .9);
+
+        /*
         _p.viewToCity(_p.currentCityIndex, function()
         {
             _p.fitCameraWithVoteCitys(cb);
         });
+        */
     };
 
     _p.viewToCity = function(cityIndex, cb)
@@ -332,10 +339,17 @@
                 }
                 else
                 {
+                    Main.toVoteMode();
+
+                    MyThreeHelper.tweenOpacity(_nodeMap.linkLine.object3D, 1,.7);
+                    MyThreeHelper.tweenOpacity(_nodeMap.object3D, 1,.7);
+
+                    /*
                     Main.toRouteMode();
 
                     MyThreeHelper.tweenOpacity(_nodeMap.linkLine.object3D, 1,.7);
                     MyThreeHelper.tweenOpacity(_nodeMap.object3D, 1,.7);
+                    */
                 }
             }
         }
@@ -352,7 +366,7 @@
 
             Main.currentData = window.FakeData.get_vote_data.recive_data;
 
-            Main.eventProgress = parseInt(Main.currentData.day);
+            completeData();
 
             if(cb) cb.apply();
         }
@@ -383,7 +397,7 @@
                 {
                     Main.currentData = response;
 
-                    Main.eventProgress = parseInt(Main.currentData.day);
+                    completeData();
 
                     if(cb) cb.apply();
                 }
@@ -399,6 +413,29 @@
                 alert("無法取得伺服器資料");
                 //SimplePreloading.hide();
             });
+        }
+
+        function completeData()
+        {
+            Main.eventProgress = parseInt(Main.currentData.day);
+
+
+            if(Main.eventProgress >= Main.finalDay) Main.isEventComplete = true;
+
+            Main.currentData.event_route = [0];
+            Main.currentData.options =
+            [
+
+                {"city_index": 1, "num_votes": 200}, // city_index 對應到 city_data.js 中個別城市的 index
+                {"city_index": 4, "num_votes": 200},
+                {"city_index": 7, "num_votes": 200},
+                {"city_index": 10, "num_votes": 200},
+                {"city_index": 13, "num_votes": 200},
+                {"city_index": 16, "num_votes": 200}
+            ];
+
+            Main.currentData.allCitys = [0, 1, 4, 7, 10, 13, 16];
+
         }
     };
 
@@ -526,7 +563,6 @@
 
 
         /** start **/
-
         _p.render = render;
 
         function render()
@@ -561,11 +597,13 @@
 
         var routeArray = Main.currentData.event_route;
 
+        /*
         if(routeArray.length != Main.eventProgress)
         {
             alert("event route length not matching with days !");
             return;
         }
+        */
 
         var centerIndex;
 
@@ -603,7 +641,6 @@
             totalVotes += optionObj.num_votes;
         }
 
-
         for(i=0;i<Main.currentData.options.length;i++)
         {
             optionObj = Main.currentData.options[i];
@@ -613,7 +650,7 @@
 
             obj = Main.city_data[cityIndex];
 
-            cityObj = addCity(new THREE.Vector3(obj.position.x, obj.position.y, 0), obj.name_en, obj.name_ch, "voteOption", cityIndex, null, obj.num_votes, voteWeight);
+            cityObj = addCity(new THREE.Vector3(obj.position.x, obj.position.y, 0), obj.name_en, obj.name_ch, "voteOption", cityIndex, (i+2), obj.num_votes, voteWeight);
             citys.push(cityObj);
             Main.optionCitys.push(cityObj);
 
@@ -627,6 +664,7 @@
 
         function addCity(position, englishName, chineseName, nodeType, cityIndex, dayIndex, votes, voteWeight)
         {
+            //console.log("city index = " + cityIndex);
             var obj = {position: position, votes:votes, voteWeight:voteWeight};
             _nodeMap.createNode(position, englishName, chineseName, nodeType, cityIndex, dayIndex);
 
