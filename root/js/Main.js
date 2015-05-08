@@ -655,7 +655,7 @@
             citys.push(cityObj);
             Main.optionCitys.push(cityObj);
 
-            var numLinks = 100 + parseInt(400 * voteWeight);
+            var numLinks = 50 + parseInt(400 * voteWeight);
 
             addLink(centerIndex, citys.length-1, numLinks);
 
@@ -851,6 +851,7 @@
         Rule.onResize();
         InputForm.onResize();
         TopUI.onResize();
+        IndexIntro.onResize();
 
         TimelineUI.onResize();
 

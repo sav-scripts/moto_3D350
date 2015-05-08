@@ -52,7 +52,7 @@
 
             //_p.toFirstCut();
 
-            var pauseDuration = 2.3;
+            var pauseDuration = 1.5;
             var twistDuration = 1.5;
 
             IntroText.object3D.visible = true;

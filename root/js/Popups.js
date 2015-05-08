@@ -43,6 +43,11 @@
         fields.email = $("#form_email")[0];
         fields.address = $("#form_address")[0];
 
+        $(doms.container).mousewheel(function(event)
+        {
+            event.stopPropagation();
+        });
+
         doms.title.init =
         {
             w:369,
@@ -52,7 +57,7 @@
 
         $(doms.btnClose).on("click", function()
         {
-           _p.hide();
+           _p.hide(Main.viewToCurrentCity);
         });
 
         $(doms.btnSend).on("click", function()
@@ -81,7 +86,7 @@
         TweenMax.to(doms.container,.6, {alpha:1});
     };
 
-    _p.hide = function()
+    _p.hide = function(cb)
     {
         if(_isHiding) return;
         _isHiding = true;
@@ -90,6 +95,7 @@
         TweenMax.to(doms.container,.6, {alpha:0, onComplete:function()
         {
             $(doms.container).css("display", "none");
+            if(cb) cb.apply();
         }});
 
     };
@@ -323,6 +329,11 @@
         doms.images = $(".product_image");
         doms.buttons = $(".product_button");
 
+        $(doms.container).mousewheel(function(event)
+        {
+            event.stopPropagation();
+        });
+
         var i, dom, imageDom;
 
 
@@ -492,10 +503,15 @@
 
         $(doms.container).css("display", "block");
 
+        $(doms.container).mousewheel(function(event)
+        {
+           event.stopPropagation();
+        });
+
         doms.verticalText.init =
         {
-            w:393,
-            h:117
+            w:500,
+            h:6355
         };
 
         _ss = new SimpleScroller($(".rule_content")[0], 1497, null, true).update();

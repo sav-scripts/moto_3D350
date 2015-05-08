@@ -600,13 +600,31 @@
     var _isHiding = true;
     var _isSwitchHiding = true;
 
+    var _isInit = false;
+
     _p.init = function()
     {
+        _isInit = true;
+
         doms.container = $(".index_intro")[0];
         doms.cover = $(".index_intro_cover")[0];
         doms.text = $(".index_intro_text")[0];
         doms.button = $(".index_intro_button")[0];
         doms.switchButton = $(".index_switch_button")[0];
+
+        $(doms.container).mousewheel(function(event)
+        {
+            event.stopPropagation();
+        });
+
+
+        doms.text.init =
+        {
+            w:370,
+            h:126,
+            ratio:126/370
+        };
+
 
         $(doms.container).css("display", "none");
 
@@ -720,6 +738,29 @@
         */
     };
 
+    _p.onResize = function ()
+    {
+        if(!_isInit) return;
+
+        var width = window.innerWidth;
+        if(width <= 430)
+        {
+            var minTitleWidth = doms.text.init.w + 40;
+            var ratio = doms.text.init.ratio;
+
+            if (width < minTitleWidth)
+            {
+                var tw = width - 40;
+                var th = (width - 40) * ratio;
+                $(doms.text).css("width", tw + "px").css("height", th + "px").css("margin-left", -tw *.5 + "px").css("margin-top", -47-th *.5+"px");
+            }
+            else
+            {
+                $(doms.text).css("width", "").css("height", "").css("margin-left", "").css("margin-top", "");
+            }
+        }
+    };
+
 
 }());
 
@@ -740,6 +781,12 @@
         doms.btnNo = $(".confirm_dialog .btn_no")[0];
         doms.text = $(".confirm_dialog .dialog_text")[0];
         doms.cityName = $(".confirm_dialog .dialog_city_name")[0];
+
+
+        $(doms.container).mousewheel(function(event)
+        {
+            event.stopPropagation();
+        });
 
         $(doms.container).css("display", "block").detach();
     };

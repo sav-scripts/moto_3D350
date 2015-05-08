@@ -68,6 +68,10 @@ canvas {
     margin-left: -185px;
     margin-top: -110px;
     background: url(../images/index_t01.png);
+    background-size: cover;
+}
+@media (max-width: 430px) {
+
 }
 .index_intro_button{
     position: absolute;
