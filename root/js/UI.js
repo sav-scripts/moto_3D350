@@ -648,7 +648,7 @@
 
             }, function()
             {
-                alert("請先登入 Facebook 才能參加活動.\n facebook 測試帳號: kzyfzxc_sidhuwitz_1430913477@tfbnw.net\n 密碼: 1234");
+                alert("請先登入 Facebook 才能參加活動.");
             });
             /*
             _p.hide(function()
