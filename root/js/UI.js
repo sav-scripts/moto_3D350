@@ -345,7 +345,10 @@
             {
                 if(_isLocking || _isHiding) return;
 
-                SceneAnime.instance.toDetailMode(dayIndex);
+                SceneAnime.instance.toDetailMode(dayIndex, function()
+                {
+                    Main.viewToCurrentCity();
+                });
             });
 
             $(labelDom).on("mouseover", function()

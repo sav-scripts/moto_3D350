@@ -147,8 +147,9 @@
 
         };
 
-        _p.toDetailMode = function(index, cb)
+        _p.toDetailMode = function(index, cb, delay)
         {
+            if(delay == null) delay = .7;
             _cameraControl.lock();
 
             TimelineUI.muteSound();
@@ -188,9 +189,17 @@
 
             tl.add(function()
             {
+                TweenMax.to(_pointMap.uniforms.opacity,.6, {value:0});
+                TweenMax.to(_baseMap.uniforms.opacity,.6, {value:0});
+            }, "-=.6");
+
+
+            tl.add(function()
+            {
+
                 Main.inVideoMode = true;
                 VideoPlayer.playVideo(index, cb);
-            });
+            }, "+=" + delay);
 
 
             //var sa
@@ -198,6 +207,9 @@
 
         _p.backToMap = function(cb)
         {
+            TweenMax.to(_pointMap.uniforms.opacity,.5, {value:1});
+            TweenMax.to(_baseMap.uniforms.opacity,.5, {value:1});
+
             var tl = new TimelineMax();
             tl.to(_cameraControl.cameraInitPosition,.7, {y: -600, ease:Power1.easeIn}, 0);
             // tl.to(_cameraControl.values,.7, {distance: 800, ease:Power1.easeOut}, 0);
@@ -226,7 +238,7 @@
                 TimelineUI.show();
 
                 //Main.viewToCurrentCity();
-                Main.recoverFromDetail();
+                //Main.recoverFromDetail();
 
 
                 TimelineUI.recoverSound();

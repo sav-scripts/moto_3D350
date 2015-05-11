@@ -277,7 +277,6 @@
                                 Rule.init();
 
                                 SoundPlayer.initSound();
-                                //SoundPlayer.switchBGM(false);
 
                                 build();
                                 start();

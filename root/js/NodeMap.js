@@ -491,7 +491,7 @@
 
                                 var url = urlPath + "misc/fb_share.jpg";
 
-                                console.log("url = " + url);
+                                //console.log("url = " + url);
 
                                 var params =
                                 {

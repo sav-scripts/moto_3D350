@@ -342,6 +342,7 @@
             dom = doms.buttons[i-1];
             imageDom = doms.images[i-1];
 
+            /*
             if(i <= Main.eventProgress)
             {
                 setupButton(dom, i-1);
@@ -351,6 +352,9 @@
                 $(dom).toggleClass("please_wait", true);
                 $(imageDom).toggleClass("please_wait", true);
             }
+            */
+
+            setupButton(dom, i-1);
 
 
             $(imageDom).css("display", "block");

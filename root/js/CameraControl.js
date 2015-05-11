@@ -98,7 +98,11 @@
 
             if(!ease) ease = Power1.easeInOut;
 
-            TweenMax.to(_p.values, duration, {distance:cameraDistance, ease:ease, onComplete: cb});
+            TweenMax.to(_p.values, duration, {distance:cameraDistance, ease:ease, onComplete:function()
+            {
+                _p.updateValues();
+                if(cb) cb.apply();
+            }});
         };
 
         /*
