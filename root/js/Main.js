@@ -333,7 +333,11 @@
 
                 SceneAnime.instance.switchMapContent(false, 0);
 
-                if(Main.eventProgress < Main.finalDay)
+
+                IndexIntro.show();
+
+                /*
+                if(!Main.isEventComplete)
                 {
                     IndexIntro.show();
                 }
@@ -343,14 +347,9 @@
 
                     MyThreeHelper.tweenOpacity(_nodeMap.linkLine.object3D, 1,.7);
                     MyThreeHelper.tweenOpacity(_nodeMap.object3D, 1,.7);
-
-                    /*
-                    Main.toRouteMode();
-
-                    MyThreeHelper.tweenOpacity(_nodeMap.linkLine.object3D, 1,.7);
-                    MyThreeHelper.tweenOpacity(_nodeMap.object3D, 1,.7);
-                    */
                 }
+                */
+
             }
         }
     };
@@ -418,6 +417,17 @@
         function completeData()
         {
             Main.eventProgress = parseInt(Main.currentData.day);
+
+
+            if(Utility.urlParams.simulate_day != undefined)
+            {
+                Main.eventProgress = parseInt(Utility.urlParams.simulate_day);
+            }
+
+            if(Main.eventProgress > Main.finalDay) Main.eventProgress = Main.finalDay;
+            if(Main.eventProgress < 1) Main.eventProgress = 1;
+
+            console.log("event progress = " + Main.eventProgress);
 
 
             if(Main.eventProgress >= Main.finalDay) Main.isEventComplete = true;

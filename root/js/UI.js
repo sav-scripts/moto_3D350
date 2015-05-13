@@ -223,7 +223,7 @@
 
     _p.init = function()
     {
-        _eventProgress = Main.currentData.day;
+        _eventProgress = Main.eventProgress;
 
         _timelineDom = $(".timeline_layer")[0];
 
@@ -435,6 +435,7 @@
         {
             _inCenterMode = true;
             var middle = MIN_GAP * .5 + (_eventProgress-1) * MIN_GAP;
+            if(Main.isEventComplete) middle -= MIN_GAP;
 
             $nodePart.css("left", (_totalWidth *.5 - middle) + window.innerWidth *.5);
 
@@ -447,7 +448,7 @@
 
     _p.update = function()
     {
-
+        var percent = 0;
         var dayUnitPercent = MIN_GAP / window.innerWidth * 100;
 
         var dSec = (new Date().getTime() - _time) / 1000;
@@ -455,9 +456,11 @@
         var sec = _startSec + dSec;
 
         var dayProgress = sec / _daySec * dayUnitPercent;
-        if(Main.eventProgress >= Main.finalDay) dayProgress = 0;
+        if(Main.isEventComplete)
+        {
+            dayProgress = _inCenterMode? dayUnitPercent: 0;
+        }
 
-        var percent;
 
         if(_inCenterMode)
         {
@@ -468,7 +471,6 @@
             var startProgress = ((window.innerWidth - _totalWidth) * .5) / window.innerWidth * 100 +  (_eventProgress-1) * dayUnitPercent;
 
             percent = startProgress + dayProgress;
-
         }
 
         $(".progress_line").css("width", percent + "%");
@@ -615,50 +617,64 @@
         doms.button = $(".index_intro_button")[0];
         doms.switchButton = $(".index_switch_button")[0];
 
+        $(doms.container).css("display", "block");
+
         $(doms.container).mousewheel(function(event)
         {
             event.stopPropagation();
         });
 
 
+
+        if(Main.isEventComplete)
+        {
+            $(doms.button).toggleClass("timeup", true);
+            $(doms.text).toggleClass("timeup", true);
+        }
+
+
         doms.text.init =
         {
-            w:370,
-            h:126,
-            ratio:126/370
+            w:$(doms.text).width(),
+            h:$(doms.text).height()
         };
+        doms.text.init.ratio = doms.text.init.h / doms.text.init.w;
+
 
 
         $(doms.container).css("display", "none");
 
         $(doms.button).on("click", function()
         {
-            FBHelper.login(["public_profile"], function()
+            if(Main.isEventComplete)
             {
-                FB.api('/me', function(response)
+                _p.hide(function()
                 {
-                    FBHelper.uname = response.name;
-
-                    //console.log("fb uid: " + FBHelper.uid + ", uname: " + FBHelper.uname);
-
-                    _p.hide(function()
-                    {
-                        Main.toVoteMode(true);
-                        //Main.toRouteMode();
-                    });
+                    Main.toVoteMode(true);
                 });
-
-
-            }, function()
+            }
+            else
             {
-                alert("請先登入 Facebook 才能參加活動.");
-            });
-            /*
-            _p.hide(function()
-            {
-                Main.toVoteMode();
-            });
-            */
+                FBHelper.login(["public_profile"], function()
+                {
+                    FB.api('/me', function(response)
+                    {
+                        FBHelper.uname = response.name;
+
+                        //console.log("fb uid: " + FBHelper.uid + ", uname: " + FBHelper.uname);
+
+                        _p.hide(function()
+                        {
+                            Main.toVoteMode(true);
+                            //Main.toRouteMode();
+                        });
+                    });
+
+                }, function()
+                {
+                    alert("請先登入 Facebook 才能參加活動.");
+                });
+            }
         });
 
         $(doms.switchButton).on("click", function()
@@ -746,21 +762,20 @@
         if(!_isInit) return;
 
         var width = window.innerWidth;
-        if(width <= 430)
-        {
-            var minTitleWidth = doms.text.init.w + 40;
-            var ratio = doms.text.init.ratio;
+        var minWidth = doms.text.init.w + 40;
+        var ratio = doms.text.init.ratio;
 
-            if (width < minTitleWidth)
-            {
-                var tw = width - 40;
-                var th = (width - 40) * ratio;
-                $(doms.text).css("width", tw + "px").css("height", th + "px").css("margin-left", -tw *.5 + "px").css("margin-top", -47-th *.5+"px");
-            }
-            else
-            {
-                $(doms.text).css("width", "").css("height", "").css("margin-left", "").css("margin-top", "");
-            }
+        if (width < minWidth)
+        {
+            var tw = width - 40;
+            var th = tw * ratio;
+
+            //console.log("th = " + th);
+            $(doms.text).css("width", tw + "px").css("height", th + "px").css("margin-left", -tw *.5 + "px").css("margin-top", -47-th *.5+"px");
+        }
+        else
+        {
+            $(doms.text).css("width", "").css("height", "").css("margin-left", "").css("margin-top", "");
         }
     };
 

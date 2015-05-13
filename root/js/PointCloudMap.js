@@ -220,7 +220,7 @@
                     if(h >= imageHeight)
                     {
 
-                        console.log("vertices count = " + geometry.vertices.length);
+                        //console.log("vertices count = " + geometry.vertices.length);
                         cb.apply(null, [geometry]);
                     }
                     else

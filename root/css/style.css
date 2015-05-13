@@ -61,16 +61,22 @@ canvas {
 }
 .index_intro_text{
     position: absolute;
-    width: 370px;
-    height: 126px;
     left:50%;
     top:50%;
+    width: 370px;
+    height: 126px;
     margin-left: -185px;
     margin-top: -110px;
     background: url(../images/index_t01.png);
     background-size: cover;
 }
-@media (max-width: 430px) {
+.index_intro_text.timeup{
+    background: url(../images/index_t02.png);
+    background-size: cover;
+    width: 427px;
+    height: 150px;
+    margin-left: -214px;
+    margin-top: -122px;
 
 }
 .index_intro_button{
@@ -87,6 +93,9 @@ canvas {
 }
 .index_intro_button:hover{
     background-position: 0 0;
+}
+.index_intro_button.timeup{
+    background: url(../images/index_btn02.png) 0 -75px;
 }
 
 /** logo & menu **/
