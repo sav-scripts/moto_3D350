@@ -480,7 +480,7 @@
                                 //var urlPath = Utility.getPath();
                                 var urlPath;
 
-                                if(window.location.host == "local.savorks.com")
+                                if(window.location.host == "local.savorks.com" ||  window.location.host == "socket.savorks.com")
                                 {
                                     urlPath = Utility.getPath();
                                 }

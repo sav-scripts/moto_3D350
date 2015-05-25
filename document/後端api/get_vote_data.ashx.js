@@ -25,7 +25,8 @@ window.FakeData.get_vote_data.recive_data =
 {
     "res": "ok",
     "user_vote": "4", // 如果使用者已經有投票, 傳回使用者投的 city_index
-    "day": 3, // 目前活動進行日
+    "day": 3, // 目前活動進行日,
+    "is_event_end": 1,
     "system_time": "13/36/36", // 目前系統時間 hh = 時, mm = 分, ss = 秒
     "event_route": [0, 3, 5], // 目前已經進行的路徑, 數值對應到 city_data.js 中的個別城市的 index
     "options":

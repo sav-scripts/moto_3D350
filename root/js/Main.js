@@ -249,6 +249,7 @@
         var appId = "1384405598556258";
         if(window.location.host == 'test-aeon3d350.sp88.tw') appId = '1384627348534083';
         if(window.location.host == 'local.savorks.com') appId = '1384627715200713';
+        if(window.location.host == "socket.savorks.com") appId = '1387516268245191';
 
         //SavFB.init(appId);
         FBHelper.init(appId, execute);
@@ -360,7 +361,7 @@
 
         /** test **/
 
-        if(window.location.host == "local.savorks.com")
+        if(window.location.host == "local.savorks.com" ||  window.location.host == "socket.savorks.com")
         {
 
             Main.currentData = window.FakeData.get_vote_data.recive_data;
@@ -427,7 +428,7 @@
             if(Main.eventProgress > Main.finalDay) Main.eventProgress = Main.finalDay;
             if(Main.eventProgress < 1) Main.eventProgress = 1;
 
-            console.log("event progress = " + Main.eventProgress);
+            //console.log("event progress = " + Main.eventProgress);
 
 
             if(Main.eventProgress >= Main.finalDay) Main.isEventComplete = true;
